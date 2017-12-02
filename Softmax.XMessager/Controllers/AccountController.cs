@@ -356,14 +356,7 @@ namespace Softmax.XMessager.Controllers
           
         //}
 
-        [HttpGet]
-        [AllowAnonymous]
-        public IActionResult Customer()
-        {
-            ViewBag.genders =
-                new SelectList(GetGenders(), "Key", "Value", "--Select One--");
-            return View();
-        }
+         
 
         //[HttpGet]
         //[AllowAnonymous]
@@ -450,14 +443,7 @@ namespace Softmax.XMessager.Controllers
             return password;
         }
 
-        private Dictionary<int, string> GetGenders()
-        {
-            var genders = new Dictionary<int, string>();
-            genders.Add((int) GenderCode.Female, "Female");
-            genders.Add((int) GenderCode.Male, "Male");
-
-            return genders;
-        }
+        
 
         
 

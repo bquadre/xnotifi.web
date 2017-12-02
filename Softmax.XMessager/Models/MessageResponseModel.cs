@@ -6,7 +6,7 @@ namespace Softmax.XMessager.Models
     public class MessageResponseModel
     {
         
-        public ErrorCode Error { get; set; }
+        public StatusCode Error { get; set; }
         
         public string Message { get; set; }
         

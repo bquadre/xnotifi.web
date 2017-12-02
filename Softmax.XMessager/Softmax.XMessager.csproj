@@ -34,7 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="Data\Enums\ErrorCode.cs" />
+    <Compile Include="Utitities\XMessengerRequest.cs" />
   </ItemGroup>
 
 

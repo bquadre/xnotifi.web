@@ -5,7 +5,7 @@ using System.Web;
 
 namespace Softmax.XMessager.Data.Enums
 {
-    public enum ErrorCode
+    public enum StatusCode
     {
         MessageSubmitted =2500,
         InvalidFields =2501,
@@ -13,9 +13,9 @@ namespace Softmax.XMessager.Data.Enums
         InvalidApplication =2503,
         InValidClient =2504,
         InvalidSource =2505,
-        InvalidDetination = 2506,
+        InvalidDestination = 2506,
         InvalidMessage = 2507,
-        ResponseTimeOut= 2508,
+        InactiveGateway= 2508,
         InternalServerError = 2509,
         InsufficientCredit = 2510
     }

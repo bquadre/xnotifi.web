@@ -1,15 +1,10 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Softmax.XMessager.Data.Contracts;
 using Softmax.XMessager.Models;
-using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using Softmax.XMessager.Data.Contracts.Services;
 using Softmax.XMessager.Data.Enums;
 using Softmax.XMessager.Utitities;
@@ -20,25 +15,19 @@ namespace Softmax.XMessager.Controllers
 {
     public class MessagesController : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IOptions<PriceSettings> _priceSettings;
-
-        private readonly IEmailSender _emailSender;
-        private readonly ILogger _logger;
         private readonly IGenerator _generator;
-
+        private readonly IMessageAdapter _messageAdapter;
         private readonly IClientService _clientService;
         private readonly IGatewayService _gatewayService;
         private readonly IApplicationService _applicationService;
         private readonly IRequestService _requestService;
 
-        public MessagesController(UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager,
+        public MessagesController( 
             IOptions<PriceSettings> priceSettings,
-            IEmailSender emailSender,
             ILogger<RequestsController> logger,
             IGenerator generator,
+            IMessageAdapter messageAdapter,
 
             IClientService clientService, 
             IGatewayService gatewayService,
@@ -46,11 +35,7 @@ namespace Softmax.XMessager.Controllers
             IRequestService requestService
             )
         {
-            _userManager = userManager;
-            _roleManager = roleManager;
             _priceSettings = priceSettings;
-            _emailSender = emailSender;
-            _logger = logger;
             _generator = generator;
 
             _clientService = clientService;
@@ -71,7 +56,7 @@ namespace Softmax.XMessager.Controllers
             {
                 return new MessageResponseModel()
                 {
-                    Error = true,
+                    Error = Data.Enums.StatusCode.InvalidDestination,
                     Message = "Required parameter(s) are missing"
                 };
 
@@ -83,14 +68,14 @@ namespace Softmax.XMessager.Controllers
             {
                 return new MessageResponseModel()
                 {
-                    Error = true,
+                    Error = Data.Enums.StatusCode.InvalidApplication,
                     Message = "No application record is found"
                 };
             }
 
             var price = (model.Service == ServiceCode.Sms) ? _priceSettings.Value.Sms : _priceSettings.Value.Email;
-            var receivers = model.Recipients.Split(',');
-            var cost = receivers.Length * price;
+            var destinations = model.Destination.Split(',');
+            var cost = destinations.Length * price;
 
             var client = _clientService.Get(application.ClientId).Result;
 
@@ -98,7 +83,7 @@ namespace Softmax.XMessager.Controllers
             {
                 return new MessageResponseModel()
                 {
-                    Error = true,
+                    Error = Data.Enums.StatusCode.InValidClient,
                     Message = "No client record is found"
                 };
             }
@@ -107,8 +92,8 @@ namespace Softmax.XMessager.Controllers
             {
                 return new MessageResponseModel()
                 {
-                    Error = true,
-                    Message = "Insufficient fund"
+                    Error = Data.Enums.StatusCode.InsufficientCredit,
+                    Message = "Insufficient credit"
                 };
             }
 
@@ -119,37 +104,52 @@ namespace Softmax.XMessager.Controllers
             {
                 return new MessageResponseModel()
                 {
-                    Error = true,
+                    Error = Data.Enums.StatusCode.InactiveGateway,
                     Message = "Could not connect to the gatway at this time"
                 };
             }
 
+            gateway.Password = _generator.Decrypt(gateway.Password).Result;
             try
             {
-               // if()
+                var gatewayResponse = (model.Service == ServiceCode.Sms)
+                    ? _messageAdapter.SmsService(model, gateway)
+                    : _messageAdapter.Emailservice(model, gateway);
+
+                var request = new RequestModel()
+                {
+                    ApplicationId = application.ApplicationId,
+                    GatewayId = gateway.GatewayId,
+                    Recipients = destinations.Length,
+                    Cost = cost,
+                    Response = gatewayResponse,
+                    DateCreated = DateTime.UtcNow
+                };
+
+                _requestService.Create(request);
+                return new MessageResponseModel()
+                {
+                    Error = Data.Enums.StatusCode.MessageSubmitted,
+                    Message = "Message(s) submited successfully",
+                    Reference = request.RequestId
+                };
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                throw;
+                //throw;
             }
 
 
 
             var response = new MessageResponseModel()
             { 
-                Error = true,
-                Message ="Error"
+                Error = Data.Enums.StatusCode.InternalServerError,
+                Message ="Internal server error"
             };
-
             return response;
         }
-
-        
-        private List<ApplicationModel> GetApplications()
-        {
-            return _applicationService.List().Result;
-        }
+      
     }
 }
 

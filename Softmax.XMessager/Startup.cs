@@ -55,6 +55,7 @@ namespace Softmax.XMessager
             services.AddTransient<IEmailSender, EmailSender>();
             //services.AddTransient<ILogger, Logger>();
             services.AddTransient<IGenerator, Generator>();
+            services.AddTransient<IMessageAdapter, MessagerAdapter>();
             services.AddTransient<IMapper, Mapper>();
 
             services.AddTransient<IRepository<Client>, Repository<Client>>();

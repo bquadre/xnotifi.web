@@ -23,7 +23,7 @@
                 <div class="form-group">
                     @Html.LabelFor(model => model.ServiceUrl, new { @class = "control-label col-md-4" })
                     <div class="col-md-10">
-                        @Html.TextBoxFor(model => model.ServiceUrl, new { @class = "form-control", placeholder = "Enter Service Url" })
+                        @Html.TextAreaFor(model => model.ServiceUrl, new { @class = "form-control", placeholder = "Enter Service Url" })
                         @Html.ValidationMessageFor(model => model.ServiceUrl)
                     </div>
                 </div>
