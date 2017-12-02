@@ -1,0 +1,80 @@
+﻿ @model Softmax.XMessager.Models.GatewayModel
+@{
+    ViewBag.Title = "New Gateway";
+}
+<div class="row" style="padding-top:45px">
+    <div class="col-md-4">
+
+    </div>
+    <div class="col-md-4">
+        <h2>@ViewBag.Title</h2>
+        @using (Html.BeginForm("Create", "Gateways", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <div class="form-horizontal">
+                @Html.ValidationSummary(true)
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ServiceCode, htmlAttributes: new { @class = "control-label col-md-4" })
+                    <div class="col-md-10">
+                        @Html.DropDownListFor(model => model.ServiceCode, new SelectList(ViewBag.Services, "Value", "Text"), "select", new { @class = "form-control", required = "required" })
+                        @Html.ValidationMessageFor(model => model.ServiceCode, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ServiceUrl, new { @class = "control-label col-md-4" })
+                    <div class="col-md-10">
+                        @Html.TextBoxFor(model => model.ServiceUrl, new { @class = "form-control", placeholder = "Enter Service Url" })
+                        @Html.ValidationMessageFor(model => model.ServiceUrl)
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Provider, new { @class = "control-label col-md-4" })
+                    <div class="col-md-10">
+                        @Html.TextBoxFor(model => model.Provider, new { @class = "form-control", placeholder = "Enter Provider" })
+                        @Html.ValidationMessageFor(model => model.Provider)
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ProviderUrl, new { @class = "control-label col-md-4" })
+                    <div class="col-md-10">
+                        @Html.TextBoxFor(model => model.ProviderUrl, new { @class = "form-control", placeholder = "Enter Provider Url" })
+                        @Html.ValidationMessageFor(model => model.ProviderUrl)
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Username, new { @class = "control-label col-md-4" })
+                    <div class="col-md-10">
+                        @Html.TextBoxFor(model => model.Username, new { @class = "form-control", placeholder = "Enter Username" })
+                        @Html.ValidationMessageFor(model => model.Username)
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Password, new { @class = "control-label col-md-4" })
+                    <div class="col-md-10">
+                        @Html.TextBoxFor(model => model.Password, new { @class = "form-control", placeholder = "Enter Password" })
+                        @Html.ValidationMessageFor(model => model.Password)
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Port, new { @class = "control-label col-md-4" })
+                    <div class="col-md-10">
+                        @Html.TextBoxFor(model => model.Port, new { @class = "form-control", placeholder = "Enter Port" })
+                        @Html.ValidationMessageFor(model => model.Port)
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <input type="submit" value="Create" class="btn btn-primary" />
+                        @Html.ActionLink("Cancel", "Index", null,  null, new { @class = "btn btn-default" })
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+    <div class="col-md-4">
+
+    </div>
+
+
+</div>

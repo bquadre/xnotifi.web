@@ -1,0 +1,50 @@
+﻿@model Softmax.XMessager.Models.RefundModel
+@{
+    ViewBag.Title = "New Loan Refund";
+}
+
+<div class="row" style="padding-top:45px">
+    <div class="col-md-4"></div>
+    <div class="col-md-4">
+        <h2>@ViewBag.Title</h2>
+        @using (Html.BeginForm("Refund", "Account", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="LoanId" Value="@ViewBag.LoanId" />
+             <input type="hidden" name="CustomerId" Value="@ViewBag.CustomerId"/>
+            <div class="form-horizontal">
+                <h2 class="text-danger">
+                    @if (TempData["Error"] != null)
+                    {
+                        @TempData["Error"]
+                    }
+                   
+                </h2>
+                @Html.ValidationSummary(true)
+                <div class="form-group">
+                   
+                    <span><strong>@ViewBag.Customer</strong> - @ViewBag.AccountNumber</span>
+                </div>
+               
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Amount, htmlAttributes: new { @class = "control-label col-md-4" })
+                    <div class="col-md-8">
+                        @Html.TextBoxFor(model => model.Amount, new { @class = "form-control", placeholder = "Enter Amount", type="number" })
+                        @Html.ValidationMessageFor(model => model.Amount, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <input type="submit" value="Submit" class="btn btn-primary" />
+                        @Html.ActionLink("Cancel", "History", "Loans", new{id=@ViewBag.LoanId}, new { @class = "btn btn-default" })
+                    </div>
+                </div>
+          
+             </div>
+         }
+
+    </div>
+    <div class="col-md-4"></div>
+</div>
+

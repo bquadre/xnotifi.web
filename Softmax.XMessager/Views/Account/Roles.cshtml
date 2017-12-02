@@ -1,0 +1,40 @@
+﻿@model Softmax.XMessager.Models.AccountViewModels.UserRoleViewModel
+@{
+    ViewBag.Title = "Edit";
+}
+<div class="row" style="padding-top:45px">
+    <div class="col-md-4"></div>
+    <div class="col-md-4">
+        <h2>@Model.Name - Roles </h2>
+        @using (Html.BeginForm()) {
+            @Html.AntiForgeryToken()
+            <div class="form-horizontal">
+              
+                @Html.ValidationSummary(true)
+                @Html.HiddenFor(model => model.Id) 
+                <div class="form-group">
+                    @*@Html.Label("Roles", new { @class = "control-label col-md-4" })*@
+                    
+                    <span class="col-md-8 form-check-inline">
+                        @foreach (var item in Model.RolesList)
+                        {
+                            
+                            <input type="checkbox" name="SelectedRole" value="@item.Value" checked="@item.Selected"/>  @item.Value <br/>
+                           
+                      
+                            
+                        }
+                    </span>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <input type="submit" value="Save" class="btn btn-default" />
+                        @Html.ActionLink("Cancel", "Index", "Account", null, new {@class="btn btn-default"})
+                    </div>
+                </div>
+            </div>
+        }  
+    </div>
+    <div class="col-md-4"></div>
+</div>
