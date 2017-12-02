@@ -8,8 +8,8 @@ namespace Softmax.XMessager.Data.Enums
     public enum ErrorCode
     {
         MessageSubmitted =2500,
-        InValidFields =2501,
-        InValidService = 2502,
+        InvalidFields =2501,
+        InvalidService = 2502,
         InvalidApplication =2503,
         InValidClient =2504,
         InvalidSource =2505,
