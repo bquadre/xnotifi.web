@@ -9,6 +9,6 @@ namespace Softmax.XMessager.Data.Contracts.Services
     {
         Response<RequestModel> Create(RequestModel model);
 
-        Response<List<RequestModel>> List(string select="", string search = "");
+        Response<List<RequestModel>> List();
     }
 }

@@ -6,12 +6,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Views\Home\**" />
     <Compile Remove="Views\RolesAdmin\**" />
     <Compile Remove="Views\UsersAdmin\**" />
+    <Content Remove="Views\Home\**" />
     <Content Remove="Views\RolesAdmin\**" />
     <Content Remove="Views\UsersAdmin\**" />
+    <EmbeddedResource Remove="Views\Home\**" />
     <EmbeddedResource Remove="Views\RolesAdmin\**" />
     <EmbeddedResource Remove="Views\UsersAdmin\**" />
+    <None Remove="Views\Home\**" />
     <None Remove="Views\RolesAdmin\**" />
     <None Remove="Views\UsersAdmin\**" />
   </ItemGroup>
@@ -31,10 +35,6 @@
     <Content Remove="Views\Account\ExternalLogin.cshtml" />
     <Content Remove="Views\Account\LoginWith2fa.cshtml" />
     <Content Remove="Views\Account\LoginWithRecoveryCode.cshtml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="Utitities\XMessengerRequest.cs" />
   </ItemGroup>
 
 
@@ -85,6 +85,9 @@
     <None Include="Views\Gateways\Create.cshtml" />
     <None Include="Views\Gateways\Edit.cshtml" />
     <None Include="Views\Gateways\Index.cshtml" />
+    <None Include="Views\Home\Index.cshtml" />
+    <None Include="Views\Home\_DataTable.cshtml" />
+    <None Include="Views\Home\_PieChart.cshtml" />
   </ItemGroup>
 
 </Project>

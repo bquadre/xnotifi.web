@@ -1,0 +1,44 @@
+﻿
+@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+
+<canvas id="myLineChart" width="1581" height="474"></canvas>
+<script>
+    var url = "https://localhost:44318/Home/Daily";
+     $.get(url, function(data, status){
+         lineChart(data);
+    });
+
+     function lineChart(data) {
+        var daily = document.getElementById("myLineChart").getContext('2d');
+        var chart = new Chart(daily,
+            {
+                // The type of chart we want to create
+                type: 'line',
+
+                // The data for our dataset
+                data: {
+                    labels: data.dates,
+                    datasets: [
+                        {
+                            label: "SMS",
+                            //backgroundColor: 'rgb(255, 99, 132)',
+                            borderColor: 'rgb(255, 99, 132)',
+                            data: data.sms,
+                        },
+                        {
+                            label: "Email",
+                            //backgroundColor: 'rgb(255, 199, 102)',
+                            borderColor: 'rgb(255, 199, 102)',
+                            data: data.email,
+                        }
+                    ]
+                },
+
+                // Configuration options go here
+                options: {}
+            });
+
+    }
+</script>

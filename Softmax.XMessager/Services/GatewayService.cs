@@ -140,48 +140,58 @@ namespace Softmax.XMessager.Services
             };
         }
 
-        public Response<List<GatewayModel>> List(string search)
+        public Response<List<GatewayModel>> List()
         {
-            IQueryable<Gateway> result;
-            try
-            {
-
-                if (string.IsNullOrEmpty(search))
-                {
-                    result = this._gatewayRepository.GetAll();
-                }
-                else
-                {
-                    result = this._gatewayRepository.GetAll();
-                                  //.Where(x => x.Location.Contains(search, StringComparison.InvariantCultureIgnoreCase)
-                                  //  || x.BranchCode.Contains(search, StringComparison.InvariantCultureIgnoreCase));
-                }
-
-            }
-            catch (Exception e)
-            {
-                //Console.WriteLine(e);
-                //throw;
-                return new Response<List<GatewayModel>>()
-                {
-                    ResultType = ResultType.Error
-                };
-            }
-
-
-             var model = result.ProjectTo<GatewayModel>()
-                .Where(x=>x.IsDeleted==false)
-                .OrderBy(x=>x.DateCreated)
-                .ToList();
+            var result = _gatewayRepository.GetAll();
+            var model = result.ProjectTo<GatewayModel>().ToList();
             return new Response<List<GatewayModel>>()
             {
                 ResultType = ResultType.Success,
                 Result = model
-        };
-
-
+            };
         }
-  
+        //public Response<List<GatewayModel>> List(string search)
+        //{
+        //    IQueryable<Gateway> result;
+        //    try
+        //    {
+
+        //        if (string.IsNullOrEmpty(search))
+        //        {
+        //            result = this._gatewayRepository.GetAll();
+        //        }
+        //        else
+        //        {
+        //            result = this._gatewayRepository.GetAll();
+        //                          //.Where(x => x.Location.Contains(search, StringComparison.InvariantCultureIgnoreCase)
+        //                          //  || x.BranchCode.Contains(search, StringComparison.InvariantCultureIgnoreCase));
+        //        }
+
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        //Console.WriteLine(e);
+        //        //throw;
+        //        return new Response<List<GatewayModel>>()
+        //        {
+        //            ResultType = ResultType.Error
+        //        };
+        //    }
+
+
+        //     var model = result.ProjectTo<GatewayModel>()
+        //        .Where(x=>x.IsDeleted==false)
+        //        .OrderBy(x=>x.DateCreated)
+        //        .ToList();
+        //    return new Response<List<GatewayModel>>()
+        //    {
+        //        ResultType = ResultType.Success,
+        //        Result = model
+        //};
+
+
+        //}
+
         public Response<GatewayModel> Get(string id)
         {
             try

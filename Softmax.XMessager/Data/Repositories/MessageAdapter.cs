@@ -9,14 +9,14 @@ namespace Softmax.XMessager.Data.Repositories
     {
         public string SmsService(MessageRequestModel message, GatewayModel gateway)
         {
-            //http://smsplus4.routesms.com/bulksms/bulksms?username=#username#&password=#password#&type=1&dlr=1&destination=#destination#&source=#source#&message=#message
+            //
 
             var serviceUrl = gateway.ServiceUrl
-                .Replace("#username#", gateway.Username)
-                .Replace("#password#", gateway.Password)
-                .Replace("#source#", message.Source)
-                .Replace("#destination#", message.Destination)
-                .Replace("#message#", message.Message);
+                .Replace("#username", gateway.Username)
+                .Replace("#password", gateway.Password)
+                .Replace("#source", message.Source)
+                .Replace("#destination", message.Destination)
+                .Replace("#message", message.Message);
 
             return XMessagerRequest.SendSms(serviceUrl);
         }

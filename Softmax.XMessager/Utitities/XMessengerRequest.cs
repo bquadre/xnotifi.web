@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
+﻿using System.Net;
 
 namespace Softmax.XMessager.Utitities
 {
@@ -23,10 +18,7 @@ namespace Softmax.XMessager.Utitities
         public static string SendEmail(string url)
         {
             var response = string.Empty;
-            using (WebClient client = new WebClient())
-            {
-                response = client.DownloadString(url);
-            }
+            
 
             return response;
         }

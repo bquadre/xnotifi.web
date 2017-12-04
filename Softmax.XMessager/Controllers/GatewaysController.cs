@@ -5,6 +5,7 @@ using Softmax.XMessager.Data.Enums;
 using Softmax.XMessager.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -49,11 +50,10 @@ namespace Softmax.XMessager.Controllers
             _gatewayService = gatewayService;
         }
         // GET: /<controller>/
-        public IActionResult Index(string q,int page=1)
+        public IActionResult Index()
         {
-            var request = _gatewayService.List(q);
-            var response = (request.Successful) ? request.Result : null;
-            return View(response);
+            ViewBagData();
+            return View();
         }
 
         public IActionResult Create()
@@ -138,7 +138,17 @@ namespace Softmax.XMessager.Controllers
             foreach (var error in result.Errors)
                 ModelState.AddModelError(string.Empty, error.Description);
         }
-    
+
+        private List<GatewayModel> GetGateways()
+        {
+            return _gatewayService.List().Result;
+        }
+
+        private void ViewBagData()
+        {
+            ViewBag.Default = 0;
+            ViewBag.Gateways = GetGateways().OrderByDescending(x => x.DateCreated);
+        }
     }
 }
 

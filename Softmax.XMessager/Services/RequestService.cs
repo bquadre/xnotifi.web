@@ -17,18 +17,15 @@ namespace Softmax.XMessager.Services
     {
         private readonly IRepository<Request> _requestRepository;
         private readonly IRequestValidation _requestValidation;
-        private readonly IGenerator _generator;
         private readonly IMapper _mapper;
 
         public RequestService(IRepository<Request> requestRepository,
               IRequestValidation requestValidation,
-              IGenerator generator,
               IMapper mapper
               )
         {
             _requestRepository = requestRepository;
             _requestValidation = requestValidation;
-            _generator = generator;
             _mapper = mapper;
         }
 
@@ -43,11 +40,13 @@ namespace Softmax.XMessager.Services
                         Message = validationResult.ErrorMessage,
                         ResultType = ResultType.ValidationError
                     };
-                
-                    this._requestRepository.Insert(_mapper.Map<Request>(model));
-                    this._requestRepository.Save();
 
-                return new Response<RequestModel>
+                   var entity = _mapper.Map<Request>(model);
+                    _requestRepository.Insert(entity);
+                    _requestRepository.Save();
+
+                model = _mapper.Map<RequestModel>(entity);
+                return new Response<RequestModel>()
                 {
                     Result = model,
                     ResultType = ResultType.Success
@@ -65,50 +64,10 @@ namespace Softmax.XMessager.Services
             };
         }
 
-        public Response<List<RequestModel>> List(string select="", string search="")
+        public Response<List<RequestModel>> List()
         {
-            IQueryable<Request> result;
-            try
-            {
-
-                if (string.IsNullOrEmpty(select) && string.IsNullOrEmpty(search))
-                {
-                    result = this._requestRepository.GetAll();
-
-                }
-
-                if (!string.IsNullOrEmpty(select) && string.IsNullOrEmpty(search))
-                {
-                    result = this._requestRepository.GetAll().Where(x=>x.ApplicationId.Equals(select));
-
-                }
-                if (!string.IsNullOrEmpty(select) && !string.IsNullOrEmpty(search))
-                {
-                    result = this._requestRepository.GetAll().Where(x => x.ApplicationId.Equals(select) && 
-                    x.Application.Name.Contains(search, StringComparison.InvariantCultureIgnoreCase));
-
-                }
-                else
-                {
-                    result = this._requestRepository.GetAll()
-                        .Where(x => x.Application.Name.Contains(search, StringComparison.InvariantCultureIgnoreCase));
-                }
-
-            }
-            catch (Exception e)
-            {
-                //Console.WriteLine(e);
-                //throw;
-                return new Response<List<RequestModel>>()
-                {
-                    ResultType = ResultType.Error
-                };
-            }
-
-
-            var model = result.ProjectTo<RequestModel>()
-                .OrderBy(x => x.DateCreated)
-                .ToList();
+            var  result = _requestRepository.GetAll();
+            var model = result.ProjectTo<RequestModel>().ToList();
             return new Response<List<RequestModel>>()
             {
                 ResultType = ResultType.Success,

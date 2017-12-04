@@ -25,7 +25,7 @@ namespace Softmax.XMessager.Controllers
 
         public MessagesController( 
             IOptions<PriceSettings> priceSettings,
-            ILogger<RequestsController> logger,
+            ILogger<MessagesController> logger,
             IGenerator generator,
             IMessageAdapter messageAdapter,
 
@@ -42,24 +42,45 @@ namespace Softmax.XMessager.Controllers
             _gatewayService = gatewayService;
             _applicationService = applicationService;
             _requestService = requestService;
+            _messageAdapter = messageAdapter;
         }
         // GET: /<controller>/
         [HttpPost]
         public MessageResponseModel Send(MessageRequestModel model)
         {
-            //get pricing from web cofig
-            //check app exist
-            //check credit bal
-            //check service
 
             if (!ModelState.IsValid)
             {
                 return new MessageResponseModel()
                 {
-                    Error = Data.Enums.StatusCode.InvalidDestination,
+                    Error = Data.Enums.StatusCode.InvalidFields,
                     Message = "Required parameter(s) are missing"
                 };
 
+            }
+            var sms = model.Service.Equals(ServiceCode.Sms);
+            var email = model.Service.Equals(ServiceCode.Email);
+
+            if (!model.Service.Equals(ServiceCode.Sms) && !model.Service.Equals(ServiceCode.Email))
+            {
+                return new MessageResponseModel()
+                {
+                    Error = Data.Enums.StatusCode.InvalidService,
+                    Message = "Invalid service request"
+                };
+
+            }
+
+            var gateway = _gatewayService.List().Result
+                .FirstOrDefault(x => x.ServiceCode == model.Service && x.IsActive == true);
+
+            if (gateway == null)
+            {
+                return new MessageResponseModel()
+                {
+                    Error = Data.Enums.StatusCode.InactiveGateway,
+                    Message = "No active gateway available"
+                };
             }
 
             var application = _applicationService.List().Result.FirstOrDefault(x =>
@@ -97,24 +118,19 @@ namespace Softmax.XMessager.Controllers
                 };
             }
 
-            var gateway = _gatewayService.List().Result
-                .FirstOrDefault(x => x.ServiceCode == model.Service && x.IsActive == true);
-
-            if (gateway == null)
-            {
-                return new MessageResponseModel()
-                {
-                    Error = Data.Enums.StatusCode.InactiveGateway,
-                    Message = "Could not connect to the gatway at this time"
-                };
-            }
-
             gateway.Password = _generator.Decrypt(gateway.Password).Result;
+            
             try
             {
-                var gatewayResponse = (model.Service == ServiceCode.Sms)
-                    ? _messageAdapter.SmsService(model, gateway)
-                    : _messageAdapter.Emailservice(model, gateway);
+                var gatewayResponse = "local testing";
+
+                //var gatewayResponse = (model.Service == ServiceCode.Sms)
+                //    ? _messageAdapter.SmsService(model, gateway)
+                //    : _messageAdapter.Emailservice(model, gateway);
+
+
+                client.Balance = client.Balance - cost;
+                _clientService.Update(client);
 
                 var request = new RequestModel()
                 {
@@ -126,12 +142,13 @@ namespace Softmax.XMessager.Controllers
                     DateCreated = DateTime.UtcNow
                 };
 
-                _requestService.Create(request);
+               var lastRequest = _requestService.Create(request).Result;
+
                 return new MessageResponseModel()
                 {
                     Error = Data.Enums.StatusCode.MessageSubmitted,
                     Message = "Message(s) submited successfully",
-                    Reference = request.RequestId
+                    Reference = lastRequest.RequestId
                 };
             }
             catch (Exception e)

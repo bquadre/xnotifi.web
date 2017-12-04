@@ -19,7 +19,7 @@ using Softmax.XMessager.Models.AccountViewModels;
 namespace Softmax.XMessager.Controllers
 {
     [Authorize]
-    //[Route("[controller]/[action]")]
+    [Route("[controller]/[action]")]
     public class AccountController : Controller
     {
         private readonly RoleManager<IdentityRole> _roleManager;

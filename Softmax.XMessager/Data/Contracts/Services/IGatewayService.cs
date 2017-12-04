@@ -13,7 +13,7 @@ namespace Softmax.XMessager.Data.Contracts.Services
 
         Response<GatewayModel> Delete(string id);
 
-        Response<List<GatewayModel>> List(string search="");
+        Response<List<GatewayModel>> List();
 
         Response<GatewayModel> Get(string id);
     }

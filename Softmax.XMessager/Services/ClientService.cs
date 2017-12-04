@@ -79,9 +79,16 @@ namespace Softmax.XMessager.Services
                         ResultType = ResultType.ValidationError
                     };
 
-                   
-                    _clientRepository.Update(_mapper.Map<Client>(model));
-                    _clientRepository.Save();
+                var updatingObj = _clientRepository.GetById(model.ClientId);
+                updatingObj.Company = model.Company;
+                updatingObj.Role = model.Role;
+                updatingObj.FirstName = model.FirstName;
+                updatingObj.LastName = model.LastName;
+                updatingObj.EmailAddress = model.EmailAddress;
+                updatingObj.PhoneNumber = model.PhoneNumber;
+                updatingObj.Balance = model.Balance;
+                updatingObj.IsActive = model.IsActive;
+                _clientRepository.Save();
                
                 return new Response<ClientModel>
                 {

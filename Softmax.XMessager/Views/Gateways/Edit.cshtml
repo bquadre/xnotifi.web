@@ -1,6 +1,6 @@
 ﻿@model Softmax.XMessager.Models.GatewayModel
 @{
-    ViewBag.Title = "New Gateway";
+    ViewBag.Title = "Edit Gateway";
 }
 <div class="row" style="padding-top:45px">
     <div class="col-md-4">
@@ -28,7 +28,7 @@
                 <div class="form-group">
                     @Html.LabelFor(model => model.ServiceUrl, new { @class = "control-label col-md-4" })
                     <div class="col-md-10">
-                        @Html.TextAreaFor(model => model.ServiceUrl, new { @class = "form-control", placeholder = "Enter Service Url" })
+                        @Html.TextAreaFor(model => model.ServiceUrl, new { @class = "form-control", placeholder = "Enter Service Url", rows="5" })
                         @Html.ValidationMessageFor(model => model.ServiceUrl)
                     </div>
                 </div>
