@@ -45,11 +45,37 @@ namespace Softmax.XMessager.Controllers
             _messageAdapter = messageAdapter;
         }
         // GET: /<controller>/
+        [HttpGet]
+        public MessageResponseModel Send(string appId, string appKey, ServiceCode service, string from, string to, string message, string subject="", string brand="")
+        {
+            var model = new MessageRequestModel()
+            {
+                AppId = appId,
+                AppKey = appKey,
+                Service = service,
+                From =  from,
+                To = to,
+                Message = message,
+                Subject = subject,
+                Brand =  brand
+            };
+
+           return Messager(model);
+        }
+
+        // Post: /<controller>/
         [HttpPost]
         public MessageResponseModel Send(MessageRequestModel model)
         {
 
-            if (!ModelState.IsValid)
+            return Messager(model);
+        }
+
+       
+        private MessageResponseModel Messager(MessageRequestModel model)
+        {
+
+            if(!ModelState.IsValid)
             {
                 return new MessageResponseModel()
                 {
@@ -58,9 +84,6 @@ namespace Softmax.XMessager.Controllers
                 };
 
             }
-            var sms = model.Service.Equals(ServiceCode.Sms);
-            var email = model.Service.Equals(ServiceCode.Email);
-
             if (!model.Service.Equals(ServiceCode.Sms) && !model.Service.Equals(ServiceCode.Email))
             {
                 return new MessageResponseModel()
@@ -95,7 +118,7 @@ namespace Softmax.XMessager.Controllers
             }
 
             var price = (model.Service == ServiceCode.Sms) ? _priceSettings.Value.Sms : _priceSettings.Value.Email;
-            var destinations = model.Destination.Split(',');
+            var destinations = model.To.Split(',');
             var cost = destinations.Length * price;
 
             var client = _clientService.Get(application.ClientId).Result;
@@ -119,14 +142,14 @@ namespace Softmax.XMessager.Controllers
             }
 
             gateway.Password = _generator.Decrypt(gateway.Password).Result;
-            
+
             try
             {
-                var gatewayResponse = "local testing";
+                //var gatewayResponse = "local testing";
 
-                //var gatewayResponse = (model.Service == ServiceCode.Sms)
-                //    ? _messageAdapter.SmsService(model, gateway)
-                //    : _messageAdapter.Emailservice(model, gateway);
+                var gatewayResponse = (model.Service == ServiceCode.Sms)
+                    ? _messageAdapter.SmsService(model, gateway)
+                    : _messageAdapter.Emailservice(model, gateway);
 
 
                 client.Balance = client.Balance - cost;
@@ -142,7 +165,7 @@ namespace Softmax.XMessager.Controllers
                     DateCreated = DateTime.UtcNow
                 };
 
-               var lastRequest = _requestService.Create(request).Result;
+                var lastRequest = _requestService.Create(request).Result;
 
                 return new MessageResponseModel()
                 {
@@ -160,13 +183,12 @@ namespace Softmax.XMessager.Controllers
 
 
             var response = new MessageResponseModel()
-            { 
+            {
                 Error = Data.Enums.StatusCode.InternalServerError,
-                Message ="Internal server error"
+                Message = "Internal server error"
             };
             return response;
         }
-      
     }
 }
 

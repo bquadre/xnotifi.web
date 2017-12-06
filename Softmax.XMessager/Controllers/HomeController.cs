@@ -59,6 +59,43 @@ namespace Softmax.XMessager.Controllers
             ViewBagData();
             return View();
         }
+
+        public async Task<IActionResult> Report(string s = "", string e = "")
+        {
+
+            try
+            {
+                var startDate = GetDateTime("2017-11-29").Date;
+                var endDate = GetDateTime("2017-12-29").Date;
+                var user = await _userManager.FindByNameAsync(User.Identity.Name);
+                var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                var requests = GetRequests().Where(x=>x.DateCreated.Date >= startDate && x.DateCreated.Date <= endDate);
+                if (!isAdmin)
+                {
+                    requests = (List<RequestModel>)requests.Where(x => x.Application.Client.AspnetUserId.Equals(user.Id));
+                }
+
+              var  result = requests
+                    .OrderByDescending(x => x.DateCreated)
+                    .GroupBy(x => x.DateCreated.Date)
+                    .Select(g => new {
+                        Date = g.Key,
+                        Sms = g.Where(x => x.Gateway.ServiceCode == ServiceCode.Sms).Sum(x => x.Recipients),
+                        SmsCost = g.Where(x => x.Gateway.ServiceCode == ServiceCode.Sms).Sum(x => x.Cost),
+                        Email = g.Where(x => x.Gateway.ServiceCode == ServiceCode.Email).Sum(x => x.Recipients),
+                        EmailCost = g.Where(x => x.Gateway.ServiceCode == ServiceCode.Email).Sum(x => x.Cost),
+                    }).Distinct().ToList();
+
+                ViewBag.RangeRequests = result;
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+                //throw;
+               var ex = exception.Message;
+            }
+            return View();
+        }
         [HttpGet]
         [Route("[controller]/[action]")]
         public ChartModel Daily()
@@ -142,9 +179,11 @@ namespace Softmax.XMessager.Controllers
                 }).Distinct().ToList();
 
 
-            var total = new List<int>();
-            total.Add(overall.Select(x=>x.Sms).FirstOrDefault());
-            total.Add(overall.Select(x=>x.Email).FirstOrDefault());
+            var total = new List<int>
+            {
+                overall.Select(x => x.Sms).FirstOrDefault(),
+                overall.Select(x => x.Email).FirstOrDefault()
+            };
 
             var data = new PieChartModel()
             {
@@ -163,6 +202,17 @@ namespace Softmax.XMessager.Controllers
             return _applicationService.List().Result;
         }
 
+        private DateTime GetDateTime(string date)
+        {
+            if (string.IsNullOrEmpty(date))
+            {
+                date = DateTime.Today.ToString();
+            }
+
+            return Convert.ToDateTime(date);
+        }
+
+        
         private void ViewBagData()
         {
             ViewBag.Default = 0;

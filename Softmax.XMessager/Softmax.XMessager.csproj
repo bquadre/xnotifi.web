@@ -86,6 +86,7 @@
     <None Include="Views\Gateways\Edit.cshtml" />
     <None Include="Views\Gateways\Index.cshtml" />
     <None Include="Views\Home\Index.cshtml" />
+    <None Include="Views\Home\Report.cshtml" />
     <None Include="Views\Home\_DataTable.cshtml" />
     <None Include="Views\Home\_PieChart.cshtml" />
   </ItemGroup>

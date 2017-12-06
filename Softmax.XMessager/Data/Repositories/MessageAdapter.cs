@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Mail;
 using Softmax.XMessager.Data.Contracts;
 using Softmax.XMessager.Models;
 using Softmax.XMessager.Utitities;
@@ -9,21 +10,29 @@ namespace Softmax.XMessager.Data.Repositories
     {
         public string SmsService(MessageRequestModel message, GatewayModel gateway)
         {
-            //
-
             var serviceUrl = gateway.ServiceUrl
                 .Replace("#username", gateway.Username)
                 .Replace("#password", gateway.Password)
-                .Replace("#source", message.Source)
-                .Replace("#destination", message.Destination)
+                .Replace("#from", message.From)
+                .Replace("#to", message.To)
                 .Replace("#message", message.Message);
 
-            return XMessagerRequest.SendSms(serviceUrl);
+            return XMessagerRequest.Send(serviceUrl);
         }
 
         public string Emailservice(MessageRequestModel message, GatewayModel gateway)
         {
-            throw new NotImplementedException();
+            var serviceUrl = gateway.ServiceUrl
+                .Replace("#username", gateway.Username)
+                .Replace("#password", gateway.Password)
+                .Replace("#from", message.From)
+                .Replace("#to", message.To)
+                .Replace("#subject", message.Subject)
+                .Replace("#text", message.Message)
+                .Replace("#html", message.Message)
+                .Replace("#brand", message.Brand);
+
+            return XMessagerRequest.Send(serviceUrl);
         }
     }
 }

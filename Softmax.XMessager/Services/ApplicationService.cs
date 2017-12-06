@@ -45,7 +45,7 @@ namespace Softmax.XMessager.Services
                         ResultType = ResultType.ValidationError
                     };
 
-                   model.Key = _generator.RandomNumber(1000000, 9999999).Result;
+                   model.Key = _generator.GenerateGuid().Result;
                    model.IsActive = true;
                    model.DateCreated = DateTime.UtcNow;
 

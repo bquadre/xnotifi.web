@@ -4,7 +4,7 @@ namespace Softmax.XMessager.Utitities
 {
     public static class XMessagerRequest
     {
-        public static string SendSms(string url)
+        public static string Send(string url)
         {
             var response = string.Empty;
             using (WebClient client = new WebClient())
@@ -15,12 +15,12 @@ namespace Softmax.XMessager.Utitities
             return response;
         }
 
-        public static string SendEmail(string url)
-        {
-            var response = string.Empty;
+        //public static string SendEmail(string url)
+        //{
+        //    var response = string.Empty;
             
 
-            return response;
-        }
+        //    return response;
+        //}
     }
 }

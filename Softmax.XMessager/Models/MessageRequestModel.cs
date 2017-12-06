@@ -11,16 +11,23 @@ namespace Softmax.XMessager.Models
     {
         [Required]
         public string AppId { get; set; }
+
         [Required]
         public string AppKey { get; set; }
+
         [Required]
         public ServiceCode Service { get; set; }
+
         [Required]
-        public string Source { get; set; }
+        public string From { get; set; }
+
         [Required]
-        public string Destination { get; set; }
+        public string To { get; set; }
+
         [Required]
         public string Message { get; set; }
-        public bool IsHtml { get; set; }
+
+        public string Subject { get; set; }
+        public string Brand { get; set; }
     }
 }
