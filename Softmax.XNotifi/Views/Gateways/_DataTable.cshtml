@@ -1,0 +1,59 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+<div class="table-responsive">
+   
+    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+        <thead>
+        <tr>
+             
+            <th>Date</th>
+            <th>Service</th>
+            <th>Provider</th>
+            <th>Username</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tfoot>
+        <tr>
+
+            <th>Date</th>
+            <th>Service</th>
+            <th>Provider</th>
+            <th>Username</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+        </tfoot>
+        <tbody>
+        @if (ViewBag.Gateways != null)
+        {
+            foreach (var item in ViewBag.Gateways)
+            {
+                <tr>
+                    <td>@item.DateCreated</td>
+                    <td>@item.ServiceCode</td>
+                    <td>@item.Provider</td>
+                    <td>@item.Username</td>
+                    <td>
+                        @if (item.IsActive)
+                        {
+                            <span class="badge badge-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-danger">Inactive</span>
+                        }
+                    </td>
+                    <td>
+                        @Html.ActionLink("Edit", "Edit", new {id = item.GatewayId}, new {@class = "btn btn-outline-primary btn-sm"})
+                    </td>
+                </tr>
+            }
+        }
+
+
+        </tbody>
+    </table>
+</div>
