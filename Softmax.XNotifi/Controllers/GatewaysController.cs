@@ -67,9 +67,9 @@ namespace Softmax.XNotifi.Controllers
            SelectList();
 
             var request = _gatewayService.Get(id);
-            var response = (request.Successful) ? request.Result : null;
-            response.Password = _generator.Decrypt(response.Password).Result;
-            return View(response);
+            //var response = (request.Successful) ? request. : null;
+            request.Password = _generator.Decrypt(request.Password).Result;
+            return View(request);
         }
 
          
@@ -141,7 +141,7 @@ namespace Softmax.XNotifi.Controllers
 
         private List<GatewayModel> GetGateways()
         {
-            return _gatewayService.List().Result;
+            return _gatewayService.List().ToList();
         }
 
         private void ViewBagData()

@@ -2,7 +2,6 @@
 using Softmax.XNotifi.Data.Contracts;
 using Softmax.XNotifi.Data.Entities;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using AutoMapper.QueryableExtensions;
 using Softmax.XNotifi.Models;
@@ -17,21 +16,17 @@ namespace Softmax.XNotifi.Services
     {
         private readonly IRepository<Application> _applicationRepository;
         private readonly IApplicationValidation _applicationValidation;
-        private readonly IGenerator _generator;
         private readonly IMapper _mapper;
         
 
         public ApplicationService(IRepository<Application> applicationRepository,
               IApplicationValidation applicationValidation,
-              IGenerator generator,
-              IMapper mapper
-              )
-        {
-            _applicationRepository = applicationRepository;
-            _applicationValidation = applicationValidation;
-            _generator = generator;
-            _mapper = mapper;
-        }
+              IMapper mapper)
+                {
+                    _applicationRepository = applicationRepository;
+                    _applicationValidation = applicationValidation;
+                    _mapper = mapper;
+                }
 
         public Response<ApplicationModel> Create(ApplicationModel model)
         {
@@ -45,17 +40,17 @@ namespace Softmax.XNotifi.Services
                         ResultType = ResultType.ValidationError
                     };
 
-                   model.Key = _generator.GenerateGuid().Result;
                    model.IsActive = true;
                    model.DateCreated = DateTime.UtcNow;
 
-                
-                    _applicationRepository.Insert(_mapper.Map<Application>(model));
+                var toEnity = _mapper.Map<Application>(model);
+                    _applicationRepository.Insert(toEnity);
                     _applicationRepository.Save();
 
+                var toModel = _mapper.Map<ApplicationModel>(toEnity);
                 return new Response<ApplicationModel>
                 {
-                    Result = model,
+                    Result = toModel,
                     ResultType = ResultType.Success
                 };
             }
@@ -86,8 +81,6 @@ namespace Softmax.XNotifi.Services
                 var updatingObj = _applicationRepository.GetById(model.ApplicationId);
                 updatingObj.IsActive = model.IsActive;
                 updatingObj.Name = model.Name;
-                updatingObj.Url = model.Url;
-                updatingObj.Key = model.Key;
 
                 _applicationRepository.Save();
                
@@ -115,25 +108,10 @@ namespace Softmax.XNotifi.Services
            return result.ProjectTo<ApplicationModel>();
         }
 
-        public Response<ApplicationModel> Get(string id)
+        public  ApplicationModel Get(string id)
         {
-            try
-            {
-                var result = this._applicationRepository.GetById(id);
-           
-                return new Response<ApplicationModel>()
-                {
-                    ResultType = ResultType.Success,
-                    Result = _mapper.Map<ApplicationModel>(result)
-                };
-            }
-            catch (Exception ex)
-            {
-                //online error log
-                var err = ex.Message;
-            }
-
-            return new Response<ApplicationModel>() { ResultType = ResultType.Error };
+            var result = this._applicationRepository.GetById(id);
+            return _mapper.Map<ApplicationModel>(result);
         }
 
         public void Dispose()

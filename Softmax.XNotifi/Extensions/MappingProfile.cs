@@ -12,7 +12,7 @@ namespace Softmax.XNotifi.Extensions
             CreateMap<Application, ApplicationModel>().ReverseMap();
             CreateMap<Client, ClientModel>().ReverseMap();
             CreateMap<Request, RequestModel>().ReverseMap();
-
+            CreateMap<Payment, PaymentModel>().ReverseMap();
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -7,15 +6,13 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
+using Microsoft.Rest.Azure;
 using Softmax.XNotifi.Data.Contracts;
 using Softmax.XNotifi.Data.Contracts.Services;
-using Softmax.XNotifi.Data.Enums;
 using Softmax.XNotifi.Models;
 using Softmax.XNotifi.Models.AccountViewModels;
-using Softmax.XNotifi.Services;
 
 namespace Softmax.XNotifi.Controllers
 {
@@ -26,14 +23,13 @@ namespace Softmax.XNotifi.Controllers
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IEmailSender _emailSender;
         private readonly ILogger _logger;
 
         private readonly IClientService _clientService;
         private readonly IGatewayService _gatewayService;
         private readonly IRequestService _requestService;
-        private readonly IGenerator _generatorService;
-        private readonly IMapper _mapper;
+        private readonly IMessageFactory _messageFactory;
+        private readonly IGenerator _generator;
       
 
         public AccountController(
@@ -44,31 +40,34 @@ namespace Softmax.XNotifi.Controllers
             IClientService clientService,
             IGatewayService gatewayService,
             IRequestService requestService,
-            IGenerator generatorService,
+            IGenerator generator,
             IMapper mapper,
+            IMessageAdapter messageAdapter,
+            IMessageFactory messageFactory,
             IEmailSender emailSender,
             ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _signInManager = signInManager;
+            _logger = logger;
             
             _clientService = clientService;
-            _generatorService = generatorService;
-            _mapper = mapper;
-            _emailSender = emailSender;
-            _logger = logger;
+            _generator = generator;
+            _messageFactory = messageFactory;
         }
 
         [TempData]
         public string ErrorMessage { get; set; }
 
+        [Authorize(Roles = "Admin")]
         public IActionResult Index()
         {
             ViewBagData();
             return View();
         }
-        
+       
+        [HttpGet]
         [AllowAnonymous]
         public IActionResult Register(string returnUrl = null)
         {
@@ -76,19 +75,254 @@ namespace Softmax.XNotifi.Controllers
             return View();
         }
 
-        public IActionResult Client(string returnUrl = null)
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(ClientModel model, string returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            if (!ModelState.IsValid) return View(model);
+            var user = new ApplicationUser { UserName = model.EmailAddress, Email = model.EmailAddress };
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("User created a new account with password.");
+                model.AspnetUserId = user.Id;
+               var client = _clientService.Create(model).Result;
+                //send confirmation email
+                _messageFactory.SendEmailConfirmationLink(client, user.Id);
+                _logger.LogInformation("User created a new account with password.");
+                TempData["success"] = "Registration successful. Email confirmation link has been sent to " +
+                                      model.EmailAddress;
+                return PartialView("_Message");
+            }
+            AddErrors(result);
+
+            // If we got this far, something failed, redisplay form
+            return View(model);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> Login(string returnUrl = null)
+        {
+            // Clear the existing external cookie to ensure a clean login process
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            if (ModelState.IsValid)
+            {
+                // This doesn't count login failures towards account lockout
+                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
+                var result =
+                    await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
+                if (result.Succeeded)
+                {
+
+                    _logger.LogInformation("User logged in.");
+                    return RedirectToLocal(returnUrl);
+                }
+ 
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return View(model);
+            }
+
+            // If we got this far, something failed, redisplay form
+            return View(model);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null) return View(model);
+            var client = _clientService.List().FirstOrDefault(x => x.AspnetUserId == user.Id);
+            client.Code = _generator.RandomNumber(1000, 9999).Result;
+            client.CodeExpired = DateTime.UtcNow.AddHours(1);
+            var updateClient = _clientService.Update(client).Result;
+            _messageFactory.SendEmailForgotPasswordLink(updateClient);
+
+            /*
+            var tempPassword = _generator.TempPassword(7);
+            var passwordHasher = _userManager.PasswordHasher.HashPassword(user, tempPassword);
+            user.PasswordHash = passwordHasher;
+            user.IsTempPassword = true;
+            await _userManager.UpdateAsync(user);
+
+            var subject = "Forgot Password";
+            var message = "<br/><br/>";
+            message += "Dear " + name + ",";
+            message += "<br/><br/>";
+            message += "You recently requested for password reset on SBC website below is a temporary password";
+            message += "<br/><br/>";
+            message += "<b>Unique ID:</b> " + uniqueId;
+            message += "<br/>";
+            message += "<b>Temporary Password:</b> " + tempPassword;
+            message += "<br/><br/>";
+            message += "Thank You.";
+            message += "<br/><br/>";
+            message += "Regards,<br/>";
+            message += "SBC Team";
+
+            var filename = Path.Combine(
+                  Directory.GetCurrentDirectory(), "wwwroot/templates",
+                  "NotificationContent.html");
+            string content = System.IO.File.ReadAllText(filename);
+            content = content.Replace("#NotificationHeader", subject);
+            content = content.Replace("#NotificationBody", message);
+            content = content.Replace("#YEAR", DateTime.Now.Year.ToString());
+
+            Notifi.SendEmail(subject, content, model.Email, "NotificationLayout.html");
+
+            ViewBag.Success = "A temporary password has been sent to " + model.Email;
+            return View(model);
+            */
+
+            TempData["success"] = "Please check your email for  password reset link";
+            return PartialView("_Message");
+            // If we got this far, something failed, redisplay form
+        }
+
+        [HttpGet]
+        public IActionResult ChangePassword(string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
 
-        public IActionResult Edit(string id)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ResetPasswordViewModel model, string returnUrl = null)
         {
-            var request = _clientService.Get(id);
-            var response = (request.Successful) ? request.Result : null;
-            return View(response);
+            ViewData["ReturnUrl"] = returnUrl;
+            if (!ModelState.IsValid) return View(model);
+            var identityUser = User.Identity.Name;
+            var user = await _userManager.FindByNameAsync(identityUser);
+            var check = await _userManager.CheckPasswordAsync(user, model.Password);
+            if (check)
+            {
+
+                try
+                {
+                    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                    await _userManager.ResetPasswordAsync(user, token, model.ConfirmPassword);
+                    return RedirectToAction("Index", "Home");
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
+
+            }
+            //AddErrors(user);
+
+            // If we got this far, something failed, redisplay form
+            return View(model);
+
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPassword(string id = null)
+        {
+            if (id == null)
+            {
+                TempData["error"] = "Required parameter is missing";
+                return RedirectToAction("Index", "Home");
+            }
+            var model = new ResetPasswordViewModel(){Code = id};
+            return View(model);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model, string returnUrl = null)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            var client = _clientService.List().FirstOrDefault(x =>
+                x.ClientId == model.Code);
+            if (client == null)
+            {
+                TempData["error"] = "Validation code is invalid";
+                return PartialView("_Message");
+            }
+
+            if (client.CodeExpired < DateTime.UtcNow)
+            {
+                TempData["error"] = "Validation code has expired";
+                return PartialView("_Message");
+            }
+
+            var user = await _userManager.FindByIdAsync(client.AspnetUserId);
+            if (user == null) return View(model);
+            try
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                await _userManager.ResetPasswordAsync(user, token, model.ConfirmPassword);
+                TempData["success"] = "Account password reset successful";
+                return RedirectToAction("Login", "Account");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                //throw;
+            }
+
+            return View(model);
+        }
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public IActionResult Edit(string id)
+        {
+            var result = _clientService.Get(id);
+            return View(result);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(ClientModel model, string returnUrl = null)
+        {
+            if (!ModelState.IsValid) return View(model);
+            try
+            {
+                _clientService.Update(model);
+                TempData["success"] = "Profile has been updated";
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+
+                var err = ex.Message;
+            }
+
+            return View(model);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Roles(string id)
         {
             if (id == null)
@@ -109,85 +343,6 @@ namespace Softmax.XNotifi.Controllers
                     Value = x.Name
                 })
             };
-
-            return View(model);
-        }
-
-       
-
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(ClientModel model, string returnUrl = null)
-        {
-            ViewData["ReturnUrl"] = returnUrl;
-            if (!ModelState.IsValid) return View(model);
-            var user = new ApplicationUser { UserName = model.EmailAddress };
-            var result = await _userManager.CreateAsync(user, model.Password);
-            if (result.Succeeded)
-            {
-                _logger.LogInformation("User created a new account with password.");
-                model.AspnetUserId = user.Id;
-                _clientService.Create(model);
-                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var callbackUrl = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
-                await _emailSender.SendEmailConfirmationAsync(model.EmailAddress, callbackUrl);
-
-                await _signInManager.SignInAsync(user, isPersistent: false);
-                _logger.LogInformation("User created a new account with password.");
-                //return RedirectToAction("Index", "Account");
-                return RedirectToLocal(returnUrl);
-            }
-            AddErrors(result);
-
-            // If we got this far, something failed, redisplay form
-            return View(model);
-        }
-
-
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Client(ClientModel model, string returnUrl = null)
-        {
-            ViewData["ReturnUrl"] = returnUrl;
-            if (!ModelState.IsValid) return View(model);
-            var user = new ApplicationUser { UserName = model.EmailAddress };
-            var result = await _userManager.CreateAsync(user, "Password@1");
-            if (result.Succeeded)
-            {
-                _logger.LogInformation("User created a new account with password.");
-                model.AspnetUserId = user.Id;
-                _clientService.Create(model);
-                //var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                //var callbackUrl = Url.EmailConfirmationLink(user.Id, code, Request.Scheme);
-                // await _emailSender.SendEmailConfirmationAsync(model.Email, callbackUrl);
-
-                // await _signInManager.SignInAsync(user, isPersistent: false);
-                _logger.LogInformation("User created a new account with password.");
-                return RedirectToAction("Index", "Account");
-            }
-            AddErrors(result);
-
-            // If we got this far, something failed, redisplay form
-            return View(model);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Edit(ClientModel model, string returnUrl = null)
-        {
-            if (!ModelState.IsValid) return View(model);
-            try
-            {
-                _clientService.Update(model);
-                return RedirectToAction("Index");
-            }
-            catch (Exception ex)
-            {
-
-                var err = ex.Message;
-            }
 
             return View(model);
         }
@@ -228,55 +383,19 @@ namespace Softmax.XNotifi.Controllers
             return View();
         }
 
-
         [HttpGet]
-        [AllowAnonymous]
-        public async Task<IActionResult> Login(string returnUrl = null)
+        public async Task<IActionResult> Profile()
         {
-            // Clear the existing external cookie to ensure a clean login process
-            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-
-            ViewData["ReturnUrl"] = returnUrl;
-            return View();
-        }
-
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
-        {
-            ViewData["ReturnUrl"] = returnUrl;
-            if (ModelState.IsValid)
+            ViewBag.EmailConfirmed = false;
+            var user = await _userManager.FindByEmailAsync(User.Identity.Name);
+            if (user.EmailConfirmed)
             {
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result =
-                    await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
-                if (result.Succeeded)
-                {
-                    _logger.LogInformation("User logged in.");
-                    return RedirectToLocal(returnUrl);
-                }
-
-                if (result.IsLockedOut)
-                {
-                    _logger.LogWarning("User account locked out.");
-                    return RedirectToAction(nameof(Lockout));
-                }
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                return View(model);
+                ViewBag.EmailConfirmed = true;
             }
 
-            // If we got this far, something failed, redisplay form
-            return View(model);
-        }
-
-
-        [HttpGet]
-        [AllowAnonymous]
-        public IActionResult Lockout()
-        {
-            return View();
+            var client = await GetCurrentClient();
+            var request = _clientService.Get(client.ClientId);
+            return View(request);
         }
 
         [HttpPost]
@@ -290,93 +409,49 @@ namespace Softmax.XNotifi.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> ConfirmEmail(string userId, string code)
+        public async Task<IActionResult> Confirm(string id=null)
         {
-            if (userId == null || code == null)
-                return RedirectToAction(nameof(HomeController.Index), "Home");
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-                throw new ApplicationException($"Unable to load user with ID '{userId}'.");
-            var result = await _userManager.ConfirmEmailAsync(user, code);
-            return View(result.Succeeded ? "ConfirmEmail" : "Error");
-        }
+            var result = await _userManager.FindByIdAsync(id);
 
-        [HttpGet]
-        [AllowAnonymous]
-        public IActionResult ForgotPassword()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
-        {
-            if (ModelState.IsValid)
+            if (result == null)
             {
-                var user = await _userManager.FindByEmailAsync(model.Email);
-                if (user == null || !await _userManager.IsEmailConfirmedAsync(user))
-                    return RedirectToAction(nameof(ForgotPasswordConfirmation));
-
-                // For more information on how to enable account confirmation and password reset please
-                // visit https://go.microsoft.com/fwlink/?LinkID=532713
-                var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var callbackUrl = Url.ResetPasswordCallbackLink(user.Id, code, Request.Scheme);
-                await _emailSender.SendEmailAsync(model.Email, "Reset Password",
-                    $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>");
-                return RedirectToAction(nameof(ForgotPasswordConfirmation));
+                TempData["error"] = "No user record is found";
             }
 
-            // If we got this far, something failed, redisplay form
-            return View(model);
+            else if (result.EmailConfirmed)
+            {
+                TempData["error"] = result.Email + " has already been confirmed";
+
+            }
+            else
+            {
+                result.EmailConfirmed = true;
+                await _userManager.UpdateAsync(result);
+                TempData["success"] = result.Email + " has been confirmed";
+
+                return RedirectToAction("Login");
+            }
+            return PartialView("_Message");
         }
 
-        [HttpGet]
-        [AllowAnonymous]
-        public IActionResult ForgotPasswordConfirmation()
+        public async Task<IActionResult> AccessKey()
         {
-            return View();
+            var client = await GetCurrentClient();
+            var model = _clientService.Get(client.ClientId);
+            var key = _generator.GenerateGuid().Result;
+
+            model.AccessKey = key;
+            _clientService.Update(model);
+
+            return RedirectToAction("Profile");
         }
 
-        [HttpGet]
-        [AllowAnonymous]
-        public IActionResult ResetPassword(string code = null)
+        public async Task<IActionResult> ResendLink()
         {
-            if (code == null)
-                throw new ApplicationException("A code must be supplied for password reset.");
-            var model = new ResetPasswordViewModel {Code = code};
-            return View(model);
-        }
-
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
-        {
-            if (!ModelState.IsValid)
-                return View(model);
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null)
-                return RedirectToAction(nameof(ResetPasswordConfirmation));
-            var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
-            if (result.Succeeded)
-                return RedirectToAction(nameof(ResetPasswordConfirmation));
-            AddErrors(result);
-            return View();
-        }
-
-        [HttpGet]
-        [AllowAnonymous]
-        public IActionResult ResetPasswordConfirmation()
-        {
-            return View();
-        }
-
-        [HttpGet]
-        public IActionResult AccessDenied()
-        {
-            return View();
+            var client = await GetCurrentClient();
+            _messageFactory.SendEmailConfirmationLink(client, client.AspnetUserId);
+            TempData["success"] = "Email confirmation link has been sent";
+            return RedirectToAction("Index", "Home");
         }
 
         private string GetClientContact(string userId)
@@ -398,47 +473,6 @@ namespace Softmax.XNotifi.Controllers
         }
         
         #region Helpers
-
-        private async Task<string> GenerateEmployeeLoginId()
-        {
-            var id = string.Empty;
-
-            for (var i = 0; i < 1000; i++)
-            {
-                id = _generatorService
-                    .RandomNumber(1000, 1999).Result;
-                var check = await _userManager.FindByNameAsync(id);
-                if (check == null)
-                    break;
-            }
-
-            return id;
-        }
-
-        private async Task<string> GenerateCustomerLoginId()
-        {
-            var id = string.Empty;
-
-            for (var i = 0; i < 1000; i++)
-            {
-                id = _generatorService
-                    .RandomNumber(2000, 9999).Result;
-                var check = await _userManager.FindByNameAsync(id);
-                if (check == null)
-                    break;
-            }
-
-            return id;
-        }
-
-        private string GenerateTempPassword()
-        {
-            var password = _generatorService
-                .GenerateGuid()
-                .Result.Substring(0, 8);
-            return password;
-        }
-
         private void AddErrors(IdentityResult result)
         {
             foreach (var error in result.Errors)
@@ -452,6 +486,16 @@ namespace Softmax.XNotifi.Controllers
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
 
+        private async Task<ClientModel> GetCurrentClient()
+        {
+            var identity = User.Identity.Name;
+            var user = await _userManager.FindByNameAsync(identity);
+
+            var list = _clientService.List();
+            var client = list.FirstOrDefault(x => x.AspnetUserId.Equals(user.Id));
+            return client;
+
+        }
         #endregion
     }
 }

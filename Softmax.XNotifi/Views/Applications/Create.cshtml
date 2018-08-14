@@ -1,7 +1,8 @@
-﻿ @model Softmax.XNotifi.Models.ApplicationModel
+﻿@model Softmax.XNotifi.Models.ApplicationModel
 @{
     ViewBag.Title = "New Application";
 }
+@inject UserManager<ApplicationUser> UserManager
 <div class="row" style="padding-top:45px">
     <div class="col-md-4">
 
@@ -13,13 +14,16 @@
             @Html.AntiForgeryToken()
             <div class="form-horizontal">
                 @Html.ValidationSummary(true)
-                <div class="form-group">
-                    @Html.LabelFor(model => model.ClientId, htmlAttributes: new { @class = "control-label col-md-4" })
-                    <div class="col-md-10">
-                        @Html.DropDownListFor(model => model.ClientId, new SelectList(ViewBag.Clients, "Value", "Text"), "select", new { @class = "form-control", required = "required" })
-                        @Html.ValidationMessageFor(model => model.ClientId, "", new { @class = "text-danger" })
+                @if (await UserManager.IsInRoleAsync(await UserManager.FindByNameAsync(User.Identity.Name), "Admin"))
+                {
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.ClientId, htmlAttributes: new {@class = "control-label col-md-4"})
+                        <div class="col-md-10">
+                            @Html.DropDownListFor(model => model.ClientId, new SelectList(ViewBag.Clients, "Value", "Text"), "select", new {@class = "form-control", required = "required"})
+                            @Html.ValidationMessageFor(model => model.ClientId, "", new {@class = "text-danger"})
+                        </div>
                     </div>
-                </div>
+                }
                 <div class="form-group">
                     @Html.LabelFor(model => model.Name, new { @class = "control-label col-md-4" })
                     <div class="col-md-10">
@@ -27,15 +31,6 @@
                         @Html.ValidationMessageFor(model => model.Name)
                     </div>
                 </div>
-                <div class="form-group">
-                    @Html.LabelFor(model => model.Url, new { @class = "control-label col-md-4" })
-                    <div class="col-md-10">
-                        @Html.TextBoxFor(model => model.Url, new { @class = "form-control", placeholder = "Enter Service Url" })
-                        @Html.ValidationMessageFor(model => model.Url)
-                    </div>
-                </div>
-               
-            
                 <div class="form-group">
                     <div class="col-md-offset-2 col-md-10">
                         <input type="submit" value="Create" class="btn btn-primary" />

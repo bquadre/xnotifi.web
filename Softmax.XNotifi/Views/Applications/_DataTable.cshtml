@@ -1,16 +1,24 @@
 ﻿@*
     For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 *@
+@using System.Globalization
+@using Microsoft.AspNetCore.Identity
+@using Softmax.XNotifi.Models
+@using Softmax.XNotifi.Data
+
+@inject UserManager<ApplicationUser> UserManager
 <div class="table-responsive">
    
     <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
         <thead>
         <tr>
             <th>Date</th>
-            <th>Client</th>
-            <th>Application</th>
-            <th>AppId</th>
-            <th>AppKey</th>
+            @if (await UserManager.IsInRoleAsync(await UserManager.FindByNameAsync(User.Identity.Name), "Admin"))
+            {
+                <th>Client</th>
+            }
+            
+            <th>Application Name</th>
             <th>Status</th>
             <th></th>
         </tr>
@@ -18,10 +26,11 @@
         <tfoot>
         <tr>
             <th>Date</th>
-            <th>Client</th>
-            <th>Application</th>
-            <th>AppId</th>
-            <th>AppKey</th>
+            @if (await UserManager.IsInRoleAsync(await UserManager.FindByNameAsync(User.Identity.Name), "Admin"))
+            {
+                <th>Client</th>
+            }
+            <th>Application Name</th>
             <th>Status</th>
             <th></th>
         </tr>
@@ -35,20 +44,14 @@
                     <td>
                         @item.DateCreated
                     </td>
+                    @if (await UserManager.IsInRoleAsync(await UserManager.FindByNameAsync(User.Identity.Name), "Admin"))
+                    {
+                        <td>
+                            @item.Client.Company
+                        </td>
+                    }    
                     <td>
-                        @item.Client.Company
-                    </td>
-                         
-                    <td>
-                        <a href="@item.Url" target="_blank">@item.Name</a>
-                    </td>
-                         
-                    <td>
-                        @item.ApplicationId
-                    </td>
-                         
-                    <td>
-                        @item.Key
+                        @item.Name
                     </td>
                     <td>
                         @if(item.IsActive){
@@ -60,7 +63,6 @@
                     </td>
                     <td>
                         @Html.ActionLink("Edit", "Edit", new { id = item.ApplicationId }, new { @class = "btn btn-outline-primary btn-sm" })
-                        @Html.ActionLink("New Key", "NewKey", new {id = item.ApplicationId}, new {@class = "btn btn-outline-success btn-sm"})
                     </td>
                 </tr>
             }

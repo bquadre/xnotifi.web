@@ -9,16 +9,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Softmax.XNotifi.Data;
 using Softmax.XNotifi.Models;
-using Softmax.XNotifi.Services;
 using AutoMapper;
 using Microsoft.Extensions.FileProviders;
 using Softmax.XNotifi.Data.Entities;
-using Softmax.XNotifi.Data.Contracts;
-using Softmax.XNotifi.Data.Contracts.Services;
-using Softmax.XNotifi.Data.Contracts.Validations;
-using Softmax.XNotifi.Data.Repositories;
-using Softmax.XNotifi.Services.Validations;
-using Softmax.XNotifi.Utitities;
+
 
 
 namespace Softmax.XNotifi
@@ -52,34 +46,36 @@ namespace Softmax.XNotifi
 
             // Add application services.
             services.AddTransient<DbContext, ApplicationDbContext>();
-            services.AddTransient<IEmailSender, EmailSender>();
+           // services.AddTransient<IEmailSender, EmailSender>();
             //services.AddTransient<ILogger, Logger>();
-            services.AddTransient<IGenerator, Generator>();
-            services.AddTransient<IMessageAdapter, MessagerAdapter>();
+           // services.AddTransient<IGenerator, Generator>();
+            //services.AddTransient<IMessageAdapter, MessagerAdapter>();
+            //services.AddTransient<IMessageFactory, MessageFactory>();
             services.AddTransient<IMapper, Mapper>();
 
-            services.AddTransient<IRepository<Client>, Repository<Client>>();
-            services.AddTransient<IRepository<Gateway>, Repository<Gateway>>();
-            services.AddTransient<IRepository<Application>, Repository<Application>>();
-            services.AddTransient<IRepository<Request>, Repository<Request>>();
+            //services.AddTransient<IRepository<Client>, Repository<Client>>();
+            //services.AddTransient<IRepository<Gateway>, Repository<Gateway>>();
+            //services.AddTransient<IRepository<Application>, Repository<Application>>();
+            //services.AddTransient<IRepository<Request>, Repository<Request>>();
+            //services.AddTransient<IRepository<Payment>, Repository<Payment>>();
 
-            services.AddTransient<IClientService, ClientService>();
-            services.AddTransient<IGatewayService, GatewayService>();
-            services.AddTransient<IApplicationService, ApplicationService>();
-            services.AddTransient<IRequestService, RequestService>();
+            //services.AddTransient<IClientService, ClientService>();
+            //services.AddTransient<IGatewayService, GatewayService>();
+            //services.AddTransient<IApplicationService, ApplicationService>();
+            //services.AddTransient<IRequestService, RequestService>();
+            //services.AddTransient<IPaymentService, PaymentService>();
 
-
-            services.AddTransient<IClientValidation, ClientValidation>();
-            services.AddTransient<IGatewayValidation, GatewayValidation>();
-            services.AddTransient<IApplicationValidation, ApplicationValidation>();
-            services.AddTransient<IRequestValidation, RequestValidation>();
-
+            //services.AddTransient<IClientValidation, ClientValidation>();
+            //services.AddTransient<IGatewayValidation, GatewayValidation>();
+            //services.AddTransient<IApplicationValidation, ApplicationValidation>();
+            //services.AddTransient<IRequestValidation, RequestValidation>();
+            //services.AddTransient<IPaymentValidation, PaymentValidation>();
 
             services.AddMvc();
             services.AddAutoMapper();
 
             services.AddOptions();
-            services.Configure<PriceSettings>(Configuration.GetSection("PriceSettings"));
+           // services.Configure<XNotifiSettings>(Configuration.GetSection("XNotifiSettings"));
 
 
         }
@@ -109,7 +105,7 @@ namespace Softmax.XNotifi
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
 
-          CreateRoles(serviceProvider).Wait();
+          //CreateRoles(serviceProvider).Wait();
         }
 
         private async Task CreateRoles(IServiceProvider serviceProvider)
@@ -117,7 +113,7 @@ namespace Softmax.XNotifi
             //adding custom roles
             var RoleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var UserManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-            string[] roleNames = { "Admin", "Manager", "Accountant", "Supervisor", "Officer" };
+            string[] roleNames = { "Admin", "Manager", "Accountant", "Supervisor", "Officer", "User" };
             IdentityResult roleResult;
 
             foreach (var roleName in roleNames)

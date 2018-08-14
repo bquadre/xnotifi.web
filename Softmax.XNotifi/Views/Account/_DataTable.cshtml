@@ -68,8 +68,8 @@
                         </td>
                         <td>
                             @Html.ActionLink("Edit", "Edit", new {id = item.ClientId}, new {@class = "btn btn-outline-primary btn-sm"})
-
-                            @Html.ActionLink("Roles", "Roles", "Account", new {id = item.AspnetUserId}, new {@class = "btn btn-outline-success btn-sm"})
+                            @Html.ActionLink("Roles", "Roles", "Account", new { id = item.AspnetUserId }, new { @class = "btn btn-outline-success btn-sm" })
+                            @Html.ActionLink("Payment", "Create", "Payments", new {id = item.ClientId}, new {@class = "btn btn-default btn-sm"})
                         </td>
                     </tr>
                 }

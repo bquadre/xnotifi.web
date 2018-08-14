@@ -13,8 +13,8 @@ namespace Softmax.XNotifi.Data.Contracts.Services
 
         Response<GatewayModel> Delete(string id);
 
-        Response<List<GatewayModel>> List();
+        IQueryable<GatewayModel> List();
 
-        Response<GatewayModel> Get(string id);
+        GatewayModel Get(string id);
     }
 }

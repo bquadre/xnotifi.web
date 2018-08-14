@@ -1,0 +1,56 @@
+﻿
+@model Softmax.XNotifi.Models.PaymentModel
+@{
+    ViewBag.Title = "New Payment";
+}
+@inject UserManager<ApplicationUser> UserManager
+<div class="row" style="padding-top:45px">
+    <div class="col-md-4"></div>
+             <div class="col-md-4">
+        <h2>@ViewBag.Title</h2>
+        @using (Html.BeginForm("Create", "Payments", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <div class="form-horizontal">
+                @Html.ValidationSummary(true)
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ClientId, htmlAttributes: new { @class = "control-label col-md-4" })
+                    <div class="col-md-10">
+                        @Html.DropDownListFor(model => model.ClientId, new SelectList(ViewBag.Clients, "Value", "Text"), "select", new { @class = "form-control", required = "required" })
+                        @Html.ValidationMessageFor(model => model.ClientId, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Amount, new { @class = "control-label col-md-4" })
+                    <div class="col-md-10">
+                        @Html.TextBoxFor(model => model.Amount, new { @class = "form-control", placeholder = "Enter Amount" })
+                        @Html.ValidationMessageFor(model => model.Amount)
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.PaymentMethod, htmlAttributes: new { @class = "control-label col-md-4" })
+                    <div class="col-md-10">
+                        @Html.DropDownListFor(model => model.PaymentMethod, new SelectList(ViewBag.PaymentMethods, "Value", "Text"), "select", new { @class = "form-control", required = "required" })
+                        @Html.ValidationMessageFor(model => model.PaymentMethod, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.PaymentStatus, htmlAttributes: new { @class = "control-label col-md-4" })
+                    <div class="col-md-10">
+                        @Html.DropDownListFor(model => model.PaymentStatus, new SelectList(ViewBag.PaymentStatus, "Value", "Text"), "select", new { @class = "form-control", required = "required" })
+                        @Html.ValidationMessageFor(model => model.PaymentStatus, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <input type="submit" value="Create" class="btn btn-primary" />
+                        @Html.ActionLink("Cancel", "Index", null, null, new { @class = "btn btn-default" })
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+<div class="col-md-4"></div>
+</div>

@@ -139,81 +139,18 @@ namespace Softmax.XNotifi.Services
             };
         }
 
-        public Response<List<GatewayModel>> List()
+        public IQueryable<GatewayModel> List()
         {
             var result = _gatewayRepository.GetAll();
-            var model = result.ProjectTo<GatewayModel>().ToList();
-            return new Response<List<GatewayModel>>()
-            {
-                ResultType = ResultType.Success,
-                Result = model
-            };
+            return result?.ProjectTo<GatewayModel>();
         }
-        //public Response<List<GatewayModel>> List(string search)
-        //{
-        //    IQueryable<Gateway> result;
-        //    try
-        //    {
 
-        //        if (string.IsNullOrEmpty(search))
-        //        {
-        //            result = this._gatewayRepository.GetAll();
-        //        }
-        //        else
-        //        {
-        //            result = this._gatewayRepository.GetAll();
-        //                          //.Where(x => x.Location.Contains(search, StringComparison.InvariantCultureIgnoreCase)
-        //                          //  || x.BranchCode.Contains(search, StringComparison.InvariantCultureIgnoreCase));
-        //        }
-
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        //Console.WriteLine(e);
-        //        //throw;
-        //        return new Response<List<GatewayModel>>()
-        //        {
-        //            ResultType = ResultType.Error
-        //        };
-        //    }
-
-
-        //     var model = result.ProjectTo<GatewayModel>()
-        //        .Where(x=>x.IsDeleted==false)
-        //        .OrderBy(x=>x.DateCreated)
-        //        .ToList();
-        //    return new Response<List<GatewayModel>>()
-        //    {
-        //        ResultType = ResultType.Success,
-        //        Result = model
-        //};
-
-
-        //}
-
-        public Response<GatewayModel> Get(string id)
+        public GatewayModel Get(string id)
         {
-            try
-            {
-                var result = this._gatewayRepository.GetById(id);
-                return new Response<GatewayModel>()
-                {
-                    ResultType = ResultType.Success,
-                    Result = _mapper.Map<GatewayModel>(result)
-                };
-            }
-            catch (Exception ex)
-            {
-                //online error log
-                var err = ex.Message;
-            }
-
-            return new Response<GatewayModel>()
-            {
-                ResultType = ResultType.Error
-            };
+            var result = _gatewayRepository.GetById(id);
+            return result == null ? null : _mapper.Map<GatewayModel>(result);
         }
-  
+
         public void Dispose()
         {
             _gatewayRepository?.Dispose();

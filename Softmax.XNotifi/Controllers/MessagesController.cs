@@ -15,7 +15,7 @@ namespace Softmax.XNotifi.Controllers
 {
     public class MessagesController : Controller
     {
-        private readonly IOptions<PriceSettings> _priceSettings;
+        private readonly IOptions<XNotifiSettings> _priceSettings;
         private readonly IGenerator _generator;
         private readonly IMessageAdapter _messageAdapter;
         private readonly IClientService _clientService;
@@ -24,7 +24,7 @@ namespace Softmax.XNotifi.Controllers
         private readonly IRequestService _requestService;
 
         public MessagesController( 
-            IOptions<PriceSettings> priceSettings,
+            IOptions<XNotifiSettings> priceSettings,
             ILogger<MessagesController> logger,
             IGenerator generator,
             IMessageAdapter messageAdapter,
@@ -46,12 +46,12 @@ namespace Softmax.XNotifi.Controllers
         }
         // GET: /<controller>/
         [HttpGet]
-        public MessageResponseModel Send(string appId, string appKey, ServiceCode service, string from, string to, string message, string subject="", string brand="")
+        public MessageResponseModel Send(string clientId, string accessKey, ServiceCode service, string from, string to, string message, string subject="", string brand="")
         {
             var model = new MessageRequestModel()
             {
-                AppId = appId,
-                AppKey = appKey,
+                ClientId = clientId,
+                AccesssKey = accessKey,
                 Service = service,
                 From =  from,
                 To = to,
@@ -67,10 +67,8 @@ namespace Softmax.XNotifi.Controllers
         [HttpPost]
         public MessageResponseModel Send(MessageRequestModel model)
         {
-
             return Messager(model);
         }
-
        
         private MessageResponseModel Messager(MessageRequestModel model)
         {
@@ -79,64 +77,80 @@ namespace Softmax.XNotifi.Controllers
             {
                 return new MessageResponseModel()
                 {
-                    Error = Data.Enums.StatusCode.InvalidFields,
+                    Error = Data.Enums.MessageStatus.InvalidFields,
                     Message = "Required parameter(s) are missing"
                 };
 
             }
+
             if (!model.Service.Equals(ServiceCode.Sms) && !model.Service.Equals(ServiceCode.Email))
             {
                 return new MessageResponseModel()
                 {
-                    Error = Data.Enums.StatusCode.InvalidService,
+                    Error = Data.Enums.MessageStatus.InvalidService,
                     Message = "Invalid service request"
                 };
 
             }
 
-            var gateway = _gatewayService.List().Result
+            var gateway = _gatewayService.List()
                 .FirstOrDefault(x => x.ServiceCode == model.Service && x.IsActive == true);
 
             if (gateway == null)
             {
                 return new MessageResponseModel()
                 {
-                    Error = Data.Enums.StatusCode.InactiveGateway,
+                    Error = Data.Enums.MessageStatus.InactiveGateway,
                     Message = "No active gateway available"
                 };
             }
 
-            var application = _applicationService.List().ToList().FirstOrDefault(x =>
-                x.ApplicationId.Equals(model.AppId) && x.Key.Equals(model.AppKey) && x.IsActive == true);
-            if (application == null)
-            {
-                return new MessageResponseModel()
-                {
-                    Error = Data.Enums.StatusCode.InvalidApplication,
-                    Message = "No application record is found"
-                };
-            }
-
-            var price = (model.Service == ServiceCode.Sms) ? _priceSettings.Value.Sms : _priceSettings.Value.Email;
-            var destinations = model.To.Split(',');
-            var cost = destinations.Length * price;
-
-            var client = _clientService.Get(application.ClientId).Result;
-
+            var client = _clientService.List().ToList().FirstOrDefault(x =>
+                x.ClientId.Equals(model.ClientId) && x.AccessKey.Equals(model.AccesssKey) && x.IsActive == true);
             if (client == null)
             {
                 return new MessageResponseModel()
                 {
-                    Error = Data.Enums.StatusCode.InValidClient,
+                    Error = Data.Enums.MessageStatus.InvalidApplication,
                     Message = "No client record is found"
                 };
             }
+
+            var existingApplication = _applicationService.List()
+                .FirstOrDefault(x =>x.ClientId == model.ClientId && x.Name.ToLower().Equals(model.AppName.ToLower()) && x.IsActive == true);
+
+            string applicationId;
+            string applicationName;
+
+            if (existingApplication == null)
+            {
+                var applicationModel = new ApplicationModel()
+                {
+                    ClientId = model.ClientId,
+                    Name = model.AppName,
+                    DateCreated = DateTime.UtcNow
+                };
+                var newApplication = _applicationService.Create(applicationModel).Result;
+                applicationId = newApplication.ApplicationId;
+                applicationName = newApplication.Name;
+            }
+            else
+            {
+                applicationId = existingApplication.ApplicationId;
+                applicationName = existingApplication.Name;
+            }
+
+            var price = (model.Service == ServiceCode.Sms) ? _priceSettings.Value.SmsPrice : _priceSettings.Value.EmailPrice;
+            var destinations = model.To.Split(',');
+            var cost = destinations.Length * price;
+
+            
 
             if (client.Balance < cost)
             {
                 return new MessageResponseModel()
                 {
-                    Error = Data.Enums.StatusCode.InsufficientCredit,
+                    Error = Data.Enums.MessageStatus.InsufficientCredit,
                     Message = "Insufficient credit"
                 };
             }
@@ -147,9 +161,7 @@ namespace Softmax.XNotifi.Controllers
             {
                 //var gatewayResponse = "local testing";
 
-                var gatewayResponse = (model.Service == ServiceCode.Sms)
-                    ? _messageAdapter.SmsService(model, gateway)
-                    : _messageAdapter.Emailservice(model, gateway);
+                var gatewayResponse = _messageAdapter.Send(model, gateway);
 
 
                 client.Balance = client.Balance - cost;
@@ -157,7 +169,7 @@ namespace Softmax.XNotifi.Controllers
 
                 var request = new RequestModel()
                 {
-                    ApplicationId = application.ApplicationId,
+                    ApplicationId = applicationId,
                     GatewayId = gateway.GatewayId,
                     Recipients = destinations.Length,
                     Cost = cost,
@@ -169,7 +181,7 @@ namespace Softmax.XNotifi.Controllers
 
                 return new MessageResponseModel()
                 {
-                    Error = Data.Enums.StatusCode.MessageSubmitted,
+                    Error = Data.Enums.MessageStatus.MessageSubmitted,
                     Message = "Message(s) submited successfully",
                     Reference = lastRequest.RequestId
                 };
@@ -184,7 +196,7 @@ namespace Softmax.XNotifi.Controllers
 
             var response = new MessageResponseModel()
             {
-                Error = Data.Enums.StatusCode.InternalServerError,
+                Error = Data.Enums.MessageStatus.InternalServerError,
                 Message = "Internal server error"
             };
             return response;

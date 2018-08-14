@@ -8,7 +8,7 @@ namespace Softmax.XNotifi.Data.Entities
     {
         [Key]
         public string GatewayId { get; set; }
-        public ServiceCode ServiceCode { get; set; }
+        //public ServiceCode ServiceCode { get; set; }
         public string ServiceUrl { get; set; }
         public string Provider { get; set; }
         public string ProviderUrl { get; set; }

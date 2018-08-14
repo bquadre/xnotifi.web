@@ -44,10 +44,18 @@ namespace Softmax.XNotifi.Services
                         Message = validationResult.ErrorMessage,
                         ResultType = ResultType.ValidationError
                     };
+
                      model.DateCreated = DateTime.UtcNow;
-                     model.IsActive = true;   
-                    _clientRepository.Insert(_mapper.Map<Client>(model));
-                    _clientRepository.Save();
+                     model.IsActive = true;
+                     model.AccessKey = _generator.GenerateGuid().Result;
+                     model.Code = _generator.RandomNumber(1000, 9999).Result;
+                     model.CodeExpired = DateTime.UtcNow.AddDays(1);
+
+                        var toEntity = _mapper.Map<Client>(model);
+                        _clientRepository.Insert(toEntity);
+                        _clientRepository.Save();
+
+                model = _mapper.Map<ClientModel>(toEntity);
 
                 return new Response<ClientModel>
                 {
@@ -81,18 +89,24 @@ namespace Softmax.XNotifi.Services
 
                 var updatingObj = _clientRepository.GetById(model.ClientId);
                 updatingObj.Company = model.Company;
+                updatingObj.Address = model.Address;
                 updatingObj.Role = model.Role;
                 updatingObj.FirstName = model.FirstName;
                 updatingObj.LastName = model.LastName;
                 updatingObj.EmailAddress = model.EmailAddress;
                 updatingObj.PhoneNumber = model.PhoneNumber;
                 updatingObj.Balance = model.Balance;
+                updatingObj.AccessKey = model.AccessKey;
+                updatingObj.EmailConfirmed = model.EmailConfirmed;
+                updatingObj.PhoneConfirmed = model.PhoneConfirmed;
+                updatingObj.Code = model.Code;
+                updatingObj.CodeExpired = model.CodeExpired;
                 updatingObj.IsActive = model.IsActive;
                 _clientRepository.Save();
                
                 return new Response<ClientModel>
                 {
-                    Result = model,
+                    Result = _mapper.Map<ClientModel>(updatingObj),
                     ResultType = ResultType.Success
                 };
             }
@@ -150,25 +164,10 @@ namespace Softmax.XNotifi.Services
             return result.ProjectTo<ClientModel>();
         }
 
-        public Response<ClientModel> Get(string id)
-        {
-            try
-            {
-                var result = this._clientRepository.GetById(id);
-           
-                return new Response<ClientModel>()
-                {
-                    ResultType = ResultType.Success,
-                    Result = _mapper.Map<ClientModel>(result)
-                };
-            }
-            catch (Exception ex)
-            {
-                //online error log
-                var err = ex.Message;
-            }
-
-            return new Response<ClientModel>() { ResultType = ResultType.Error };
+        public ClientModel Get(string id)
+        { 
+            var result = _clientRepository.GetById(id);
+            return _mapper.Map<ClientModel>(result);
         }
 
         public void Dispose()

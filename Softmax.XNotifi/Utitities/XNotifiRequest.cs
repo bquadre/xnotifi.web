@@ -2,7 +2,7 @@
 
 namespace Softmax.XNotifi.Utitities
 {
-    public static class XMessagerRequest
+    public static class XNotifiRequest
     {
         public static string Send(string url)
         {
@@ -15,12 +15,6 @@ namespace Softmax.XNotifi.Utitities
             return response;
         }
 
-        //public static string SendEmail(string url)
-        //{
-        //    var response = string.Empty;
-            
-
-        //    return response;
-        //}
+        
     }
 }

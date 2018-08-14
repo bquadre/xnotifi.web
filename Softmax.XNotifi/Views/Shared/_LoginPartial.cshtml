@@ -8,13 +8,21 @@
 {
     <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" id="logoutForm" class="form-inline my-2 my-lg-0 mr-lg-2">
         <div class="input-group">
-            <span style="color:#00D2FC">User @UserManager.GetUserName(User)!</span> 
-            <span class="input-group-btn">
-               
-                <button type="submit" class="btn btn-primary">
-                    <i class="fa fa-sign-out"></i>
-                </button>
-            </span>
+            <div class="dropdown show">
+                <a class="btn btn-secondary dropdown-toggle" href="http://xnotifi.com" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    @UserManager.GetUserName(User)
+                </a>
+
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                    @Html.ActionLink("Profile", "Profile", "Account", null, new {@class= "dropdown-item" })
+                    @Html.ActionLink("Change Password", "ChangePassword", "Account", null, new { @class = "dropdown-item" })
+                    
+                    <button type="submit" class="btn btn-default btn-link dropdown-item">
+                        Log Out 
+                    </button>
+                    
+                </div>
+            </div>
         </div>
     </form>
 }

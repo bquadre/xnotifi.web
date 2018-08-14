@@ -129,122 +129,6 @@ namespace Softmax.XNotifi.Data.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("Softmax.XNotifi.Data.Entities.Application", b =>
-                {
-                    b.Property<string>("ApplicationId")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("ClientId");
-
-                    b.Property<DateTime>("DateCreated");
-
-                    b.Property<bool>("IsActive");
-
-                    b.Property<bool>("IsDeleted");
-
-                    b.Property<string>("Key");
-
-                    b.Property<string>("Name");
-
-                    b.Property<string>("Url");
-
-                    b.HasKey("ApplicationId");
-
-                    b.HasIndex("ClientId");
-
-                    b.ToTable("Applications");
-                });
-
-            modelBuilder.Entity("Softmax.XNotifi.Data.Entities.Client", b =>
-                {
-                    b.Property<string>("ClientId")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("AspnetUserId");
-
-                    b.Property<decimal>("Balance");
-
-                    b.Property<string>("Company");
-
-                    b.Property<DateTime>("DateCreated");
-
-                    b.Property<string>("EmailAddress");
-
-                    b.Property<string>("FirstName");
-
-                    b.Property<bool>("IsActive");
-
-                    b.Property<bool>("IsCustomer");
-
-                    b.Property<bool>("IsDeleted");
-
-                    b.Property<string>("LastName");
-
-                    b.Property<string>("PhoneNumber");
-
-                    b.Property<string>("Role");
-
-                    b.HasKey("ClientId");
-
-                    b.HasIndex("AspnetUserId");
-
-                    b.ToTable("Clients");
-                });
-
-            modelBuilder.Entity("Softmax.XNotifi.Data.Entities.Gateway", b =>
-                {
-                    b.Property<string>("GatewayId")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<DateTime>("DateCreated");
-
-                    b.Property<bool>("IsActive");
-
-                    b.Property<bool>("IsDeleted");
-
-                    b.Property<string>("Password");
-
-                    b.Property<string>("Provider");
-
-                    b.Property<string>("ProviderUrl");
-
-                    b.Property<int>("ServiceCode");
-
-                    b.Property<string>("ServiceUrl");
-
-                    b.Property<string>("Username");
-
-                    b.HasKey("GatewayId");
-
-                    b.ToTable("Gateways");
-                });
-
-            modelBuilder.Entity("Softmax.XNotifi.Data.Entities.Request", b =>
-                {
-                    b.Property<string>("RequestId")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("ApplicationId");
-
-                    b.Property<decimal>("Cost");
-
-                    b.Property<DateTime>("DateCreated");
-
-                    b.Property<string>("GatewayId");
-
-                    b.Property<int>("Recipients");
-
-                    b.Property<string>("Response");
-
-                    b.HasKey("RequestId");
-
-                    b.HasIndex("ApplicationId");
-
-                    b.HasIndex("GatewayId");
-
-                    b.ToTable("Requests");
-                });
-
             modelBuilder.Entity("Softmax.XNotifi.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -252,13 +136,33 @@ namespace Softmax.XNotifi.Data.Migrations
 
                     b.Property<int>("AccessFailedCount");
 
+                    b.Property<string>("Address");
+
+                    b.Property<decimal>("Balance");
+
+                    b.Property<string>("Code");
+
+                    b.Property<DateTime?>("CodeExpired");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken();
+
+                    b.Property<DateTime>("DateCreated");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256);
 
                     b.Property<bool>("EmailConfirmed");
+
+                    b.Property<string>("FirstName");
+
+                    b.Property<bool>("IsActive");
+
+                    b.Property<bool>("IsCustomer");
+
+                    b.Property<bool>("IsTempPassword");
+
+                    b.Property<string>("LastName");
 
                     b.Property<bool>("LockoutEnabled");
 
@@ -270,6 +174,8 @@ namespace Softmax.XNotifi.Data.Migrations
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256);
 
+                    b.Property<string>("Organisation");
+
                     b.Property<string>("PasswordHash");
 
                     b.Property<string>("PhoneNumber");
@@ -278,7 +184,11 @@ namespace Softmax.XNotifi.Data.Migrations
 
                     b.Property<string>("SecurityStamp");
 
+                    b.Property<decimal>("TotalCredit");
+
                     b.Property<bool>("TwoFactorEnabled");
+
+                    b.Property<string>("UnqueNumber");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256);
@@ -294,6 +204,68 @@ namespace Softmax.XNotifi.Data.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers");
+                });
+
+            modelBuilder.Entity("Softmax.XNotifi.Models.Message", b =>
+                {
+                    b.Property<string>("MessageId")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("ApplicationUserId");
+
+                    b.Property<string>("AspNetUsersId");
+
+                    b.Property<int>("Cost");
+
+                    b.Property<int>("Count");
+
+                    b.Property<DateTime>("DateCreated");
+
+                    b.Property<string>("GatewayResponse");
+
+                    b.Property<int>("MessageMethod");
+
+                    b.Property<int>("MessageType");
+
+                    b.Property<string>("Recipients");
+
+                    b.Property<string>("Sender");
+
+                    b.Property<int>("StatusCode");
+
+                    b.Property<string>("Text");
+
+                    b.HasKey("MessageId");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("Softmax.XNotifi.Models.Payment", b =>
+                {
+                    b.Property<string>("PaymentId")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<decimal>("Amount");
+
+                    b.Property<string>("ApplicationUserId");
+
+                    b.Property<string>("AspNetUsersId");
+
+                    b.Property<DateTime>("DateCreated");
+
+                    b.Property<string>("GatewayResponse");
+
+                    b.Property<int>("PaymentMethod");
+
+                    b.Property<int>("PaymentStatus");
+
+                    b.HasKey("PaymentId");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -341,29 +313,18 @@ namespace Softmax.XNotifi.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("Softmax.XNotifi.Data.Entities.Application", b =>
+            modelBuilder.Entity("Softmax.XNotifi.Models.Message", b =>
                 {
-                    b.HasOne("Softmax.XNotifi.Data.Entities.Client", "Client")
-                        .WithMany("Applications")
-                        .HasForeignKey("ClientId");
+                    b.HasOne("Softmax.XNotifi.Models.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId");
                 });
 
-            modelBuilder.Entity("Softmax.XNotifi.Data.Entities.Client", b =>
+            modelBuilder.Entity("Softmax.XNotifi.Models.Payment", b =>
                 {
-                    b.HasOne("Softmax.XNotifi.Models.ApplicationUser", "AspNetUser")
+                    b.HasOne("Softmax.XNotifi.Models.ApplicationUser", "ApplicationUser")
                         .WithMany()
-                        .HasForeignKey("AspnetUserId");
-                });
-
-            modelBuilder.Entity("Softmax.XNotifi.Data.Entities.Request", b =>
-                {
-                    b.HasOne("Softmax.XNotifi.Data.Entities.Application", "Application")
-                        .WithMany()
-                        .HasForeignKey("ApplicationId");
-
-                    b.HasOne("Softmax.XNotifi.Data.Entities.Gateway", "Gateway")
-                        .WithMany()
-                        .HasForeignKey("GatewayId");
+                        .HasForeignKey("ApplicationUserId");
                 });
 #pragma warning restore 612, 618
         }

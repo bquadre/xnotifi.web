@@ -21,20 +21,91 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\AccountController.cs" />
+    <Compile Remove="Controllers\ApplicationsController.cs" />
+    <Compile Remove="Controllers\BaseController.cs" />
     <Compile Remove="Controllers\CustomersController.cs" />
     <Compile Remove="Controllers\DepositConfirmsController.cs" />
     <Compile Remove="Controllers\DepositsController.cs" />
     <Compile Remove="Controllers\DesignationsController.cs" />
+    <Compile Remove="Controllers\GatewaysController.cs" />
+    <Compile Remove="Controllers\HomeController.cs" />
+    <Compile Remove="Controllers\MessagesController.cs" />
+    <Compile Remove="Controllers\PaymentsController.cs" />
     <Compile Remove="Controllers\ReportsController.cs" />
     <Compile Remove="Controllers\SavingsController.cs" />
     <Compile Remove="Controllers\WithdrawalsController.cs" />
+    <Compile Remove="Data\Contracts\IEmailSender.cs" />
+    <Compile Remove="Data\Contracts\IGenerator.cs" />
+    <Compile Remove="Data\Contracts\IMessageAdapter.cs" />
+    <Compile Remove="Data\Contracts\IMessageFactory.cs" />
+    <Compile Remove="Data\Contracts\IRepository.cs" />
+    <Compile Remove="Data\Contracts\IValidator.cs" />
+    <Compile Remove="Data\Contracts\Services\IApplicationService.cs" />
+    <Compile Remove="Data\Contracts\Services\IClientService.cs" />
+    <Compile Remove="Data\Contracts\Services\IGatewayService.cs" />
+    <Compile Remove="Data\Contracts\Services\IPaymentService.cs" />
+    <Compile Remove="Data\Contracts\Services\IRequestService.cs" />
+    <Compile Remove="Data\Contracts\Validations\IApplicationValidation.cs" />
+    <Compile Remove="Data\Contracts\Validations\IClientValidation.cs" />
+    <Compile Remove="Data\Contracts\Validations\IGatewayValidation.cs" />
+    <Compile Remove="Data\Contracts\Validations\IPaymentValidation.cs" />
+    <Compile Remove="Data\Contracts\Validations\IRequestValidation.cs" />
+    <Compile Remove="Data\Repositories\Generator.cs" />
+    <Compile Remove="Data\Repositories\Repository.cs" />
+    <Compile Remove="Data\Repositories\Validator.cs" />
+    <Compile Remove="Extensions\EmailSenderExtensions.cs" />
+    <Compile Remove="Extensions\MappingProfile.cs" />
     <Compile Remove="Extensions\PaginatedList.cs" />
+    <Compile Remove="Extensions\Resource.Designer.cs" />
+    <Compile Remove="Extensions\ResourceDesignation.Designer.cs" />
+    <Compile Remove="Extensions\Response.cs" />
+    <Compile Remove="Extensions\StringExtension.cs" />
+    <Compile Remove="Extensions\UrlHelperExtensions.cs" />
+    <Compile Remove="Extensions\ValidationResult.cs" />
+    <Compile Remove="Models\Dtos\ApplicationModel.cs" />
+    <Compile Remove="Models\Dtos\ChartModel.cs" />
+    <Compile Remove="Models\Dtos\ClientModel.cs" />
+    <Compile Remove="Models\Dtos\DailyModel.cs" />
+    <Compile Remove="Models\Dtos\DashboardModel.cs" />
+    <Compile Remove="Models\Dtos\ErrorViewModel.cs" />
+    <Compile Remove="Models\Dtos\GatewayModel.cs" />
+    <Compile Remove="Models\Dtos\MessageRequestModel.cs" />
+    <Compile Remove="Models\Dtos\MessageResponseModel.cs" />
+    <Compile Remove="Models\Dtos\PaymentModel.cs" />
+    <Compile Remove="Models\Dtos\PieChartModel.cs" />
+    <Compile Remove="Models\Dtos\RequestModel.cs" />
+    <Compile Remove="Models\Dtos\RequestRangeModel.cs" />
+    <Compile Remove="Models\Dtos\SummaryModel.cs" />
+    <Compile Remove="Services\ApplicationService.cs" />
+    <Compile Remove="Services\ClientService.cs" />
+    <Compile Remove="Services\EmailSender.cs" />
+    <Compile Remove="Services\GatewayService.cs" />
+    <Compile Remove="Services\PaymentService.cs" />
+    <Compile Remove="Services\RequestService.cs" />
+    <Compile Remove="Services\Validations\ClientValidation.cs" />
+    <Compile Remove="Services\Validations\GatewayValidation.cs" />
+    <Compile Remove="Services\Validations\PaymentValidation.cs" />
+    <Compile Remove="Services\Validations\RequestValidation.cs" />
+    <Compile Remove="Services\Validations\UserValidation.cs" />
+    <Compile Remove="Utitities\EmailSettings.cs" />
+    <Compile Remove="Utitities\MessageAdapter.cs" />
+    <Compile Remove="Utitities\MessageFactory.cs" />
+    <Compile Remove="Utitities\Messager.cs" />
+    <Compile Remove="Utitities\XNotifiRequest.cs" />
+    <Compile Remove="Utitities\XNotifiSettings.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Remove="Views\Account\ExternalLogin.cshtml" />
+    <Content Remove="Views\Account\ForgotPasswordConfirmation.cshtml" />
     <Content Remove="Views\Account\LoginWith2fa.cshtml" />
     <Content Remove="Views\Account\LoginWithRecoveryCode.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Extensions\Resource.resx" />
+    <EmbeddedResource Remove="Extensions\ResourceDesignation.resx" />
   </ItemGroup>
 
 
@@ -43,6 +114,7 @@
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.0.1" PrivateAssets="All" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.0.1" PrivateAssets="All" />
+    <PackageReference Include="Postmark" Version="3.3.0" />
     <PackageReference Include="Remotion.Linq" Version="2.1.2" />
     <PackageReference Include="System.Resources.ResourceManager" Version="4.3.0" />
   </ItemGroup>
@@ -54,30 +126,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Extensions\Resource.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resource.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Extensions\ResourceDesignation.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>ResourceDesignation.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Extensions\Resource.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resource.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Extensions\ResourceDesignation.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>ResourceDesignation.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
+    <Folder Include="Controllers\" />
+    <Folder Include="Data\Contracts\Services\" />
+    <Folder Include="Data\Contracts\Validations\" />
+    <Folder Include="Data\Repositories\" />
+    <Folder Include="Extensions\" />
+    <Folder Include="Models\Dtos\" />
+    <Folder Include="Services\Validations\" />
+    <Folder Include="Utitities\" />
     <Folder Include="wwwroot\uploads\photos\" />
   </ItemGroup>
 
@@ -89,6 +145,12 @@
     <None Include="Views\Home\Report.cshtml" />
     <None Include="Views\Home\_DataTable.cshtml" />
     <None Include="Views\Home\_PieChart.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Views\Payments\Index.cshtml">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

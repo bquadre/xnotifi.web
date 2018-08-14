@@ -1,13 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Softmax.XNotifi.Data.Contracts;
-using Softmax.XNotifi.Data.Enums;
 using Softmax.XNotifi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
@@ -17,25 +14,17 @@ using Softmax.XNotifi.Data.Contracts.Services;
 
 namespace Softmax.XNotifi.Controllers
 {
-    [Authorize(Roles="Admin, Manager")]
+
     public class ApplicationsController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
-
-        private readonly IEmailSender _emailSender;
         private readonly ILogger _logger;
-        private readonly IGenerator _generator;
 
         private readonly IClientService _clientService;
-        private readonly IGatewayService _gatewayService;
         private readonly IApplicationService _applicationService;
 
         public ApplicationsController(UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager,
-            IEmailSender emailSender,
             ILogger<GatewaysController> logger,
-            IGenerator generator,
 
             IClientService clientService, 
             IGatewayService gatewayService,
@@ -43,53 +32,47 @@ namespace Softmax.XNotifi.Controllers
             )
         {
             _userManager = userManager;
-            _roleManager = roleManager;
-            _emailSender = emailSender;
             _logger = logger;
-            _generator = generator;
-
             _clientService = clientService;
-            _gatewayService = gatewayService;
             _applicationService = applicationService;
         }
         // GET: /<controller>/
-        public IActionResult Index(string q,int page=1)
+        public IActionResult Index()
         {
             ViewBagData();
             return View();
         }
 
+        [HttpGet]
         public IActionResult Create()
         {
             ViewBagData();
             return View();
         }
 
-        public IActionResult Edit(string id)
-        {
-            ViewBagData();
-
-            var request = _applicationService.Get(id);
-            var response = (request.Successful) ? request.Result : null;
-            return View(response);
-        }
-
-        public IActionResult NewKey(string id)
-        {
-            var request = _applicationService.Get(id).Result;
-            request.Key = _generator.RandomNumber(1000000, 9999999).Result;
-            _applicationService.Update(request);
-            return RedirectToAction("Index");
-        }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(ApplicationModel model)
+        public async Task<IActionResult> Create(ApplicationModel model)
         {
             ViewBagData();
             if (!ModelState.IsValid) return View(model);
             try
             {
+                if (model.ClientId == null)
+                {
+                    var user = await _userManager.FindByEmailAsync(User.Identity.Name);
+                    var client = _clientService.List().FirstOrDefault(x => x.AspnetUserId.Equals(user.Id));
+                    model.ClientId = client.ClientId;
+                }
+
+                var check = _applicationService.List().FirstOrDefault(x =>
+                    x.ClientId == model.ClientId && x.Name.ToLower().Equals(model.Name.ToLower()));
+                if (check != null)
+                {
+                    TempData["error"] = model.Name +" already exist";
+                    return RedirectToAction("Index", "Home");
+
+                }
                 _applicationService.Create(model);
                 _logger.LogInformation("User created a new account with password.");
                 return RedirectToAction("Index", "Applications");
@@ -97,12 +80,18 @@ namespace Softmax.XNotifi.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                //throw;
-                //AddErrors(ex);
             }
 
             // If we got this far, something failed, redisplay form
             return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult Edit(string id)
+        {
+            ViewBagData();
+            var result = _applicationService.Get(id);
+            return View(result);
         }
 
         [HttpPost]
@@ -113,40 +102,62 @@ namespace Softmax.XNotifi.Controllers
             if (!ModelState.IsValid) return View(model);
             try
             {
+                var existingApplication = _applicationService.Get(model.ApplicationId);
+                var check = _applicationService.List().FirstOrDefault(x =>
+                    x.ClientId == model.ClientId  && x.Name.ToLower().Equals(model.Name.ToLower()) && 
+                    !x.Name.ToLower().Equals(existingApplication.Name.ToLower()));
+                if (check != null)
+                {
+                    TempData["error"] = model.Name + " already exist";
+                    return RedirectToAction("Index", "Home");
+
+                }
                 _applicationService.Update(model);
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-
                 var err = ex.Message;
             }
-
             return View(model);
+        }
+
+        private async Task<List<ApplicationModel>> GetApplications()
+        {
+            var currentUser = GetCurrentClient().GetAwaiter().GetResult();
+            var result = _applicationService.List();
+            var admin = await IsAdmin();
+            return admin ? result.ToList() : result.Where(x => x.ClientId.Equals(currentUser.ClientId)).ToList();
+        }
+
+        private async Task<ClientModel> GetCurrentClient()
+        {
+            var identity = User.Identity.Name;
+            var user = await _userManager.FindByNameAsync(identity);
+
+            var list = _clientService.List();
+            var client = list.FirstOrDefault(x => x.AspnetUserId.Equals(user.Id));
+            return client;
+        }
+
+        private async Task<bool> IsAdmin()
+        {
+            var user = await _userManager.FindByNameAsync(User.Identity.Name);
+            var role = await _userManager.IsInRoleAsync(user, "Admin");
+            return role;
         }
 
         private void ViewBagData()
         {
+            var applications = GetApplications().GetAwaiter().GetResult().ToList();
             ViewBag.Clients = new SelectList(GetClients(), "ClientId", "Company", "--Select One--");
-
-            ViewBag.Applications = _applicationService.List().ToList();
+            ViewBag.Applications = applications;
         }
 
         private List<ClientModel> GetClients()
         {
             return _clientService.List().ToList();
         }
-
-        private Dictionary<int, string> GetServices()
-        {
-            var services = new Dictionary<int, string>();
-            services.Add((int)ServiceCode.Sms, "SMS");
-            services.Add((int)ServiceCode.Email, "Email");
-
-            return services;
-        }
-
-       
     }
 }
 

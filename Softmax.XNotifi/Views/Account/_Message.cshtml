@@ -1,0 +1,26 @@
+﻿
+@*
+    For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Forgot your password?";
+    Layout = "~/Views/Shared/_Layout2.cshtml";
+}
+
+<div class="row">
+<div class="col-md-4"></div>
+<div class="col-md-4" style="background: whitesmoke; padding: 25px; margin-top: 150px">
+    <section>
+       @if (TempData["error"] != null)
+       {
+           <h5 class="text text-danger">@TempData["error"]</h5>
+       }
+       
+        @if (TempData["success"] != null)
+        {
+            <h5 class="text text-success">@TempData["success"]</h5>
+        }
+        @Html.ActionLink("Login", "Login", "Account", null, new {@class="btn btn-default"})
+    </section>
+</div>
+</div>

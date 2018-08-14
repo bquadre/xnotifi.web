@@ -1,4 +1,4 @@
-﻿ @model Softmax.XNotifi.Models.ClientModel
+﻿@model Softmax.XNotifi.Models.ClientModel
 @{
     ViewBag.Title = "Registration";
     Layout = "~/Views/Shared/_Layout2.cshtml";
@@ -32,7 +32,7 @@
                             @Html.ValidationMessageFor(model => model.LastName)
                         </div>
                     </div>
-                    @*<div class="form-group">
+                    <div class="form-group">
                         @Html.LabelFor(model => model.Company, new { @class = "control-label col-md-4" })
                         <div class="col-md-12">
                             @Html.TextBoxFor(model => model.Company, new { @class = "form-control", placeholder = "Enter Organistaion Name" })
@@ -40,10 +40,10 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        @Html.LabelFor(model => model.Role, new { @class = "control-label col-md-4" })
+                        @Html.LabelFor(model => model.Address, new { @class = "control-label col-md-4" })
                         <div class="col-md-12">
-                            @Html.TextBoxFor(model => model.Role, new { @class = "form-control", placeholder = "Contact Role" })
-                            @Html.ValidationMessageFor(model => model.Role)
+                            @Html.TextBoxFor(model => model.Address, new { @class = "form-control", placeholder = "Contact Address" })
+                            @Html.ValidationMessageFor(model => model.Address)
                         </div>
                     </div>
                     <div class="form-group">
@@ -52,7 +52,7 @@
                             @Html.TextBoxFor(model => model.PhoneNumber, new { @class = "form-control", placeholder = "Enter Contact Mobile Number" })
                             @Html.ValidationMessageFor(model => model.PhoneNumber)
                         </div>
-                    </div>*@
+                    </div>
                     <div class="form-group">
                         @Html.LabelFor(model => model.EmailAddress, new { @class = "control-label col-md-4" })
                         <div class="col-md-12">

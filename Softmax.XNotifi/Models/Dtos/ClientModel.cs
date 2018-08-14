@@ -20,7 +20,11 @@ namespace Softmax.XNotifi.Models
 
         [Required, Display(Name = "Organisation")]
         public string Company { get; set; }
+
+        [Required, Display(Name = "Contact Address")]
+        public string Address { get; set; }
         public string Role { get; set; }
+        public string AccessKey { get; set; }
         public decimal Balance { get; set; } = 0.00m;
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
@@ -32,8 +36,10 @@ namespace Softmax.XNotifi.Models
         [Required, Display(Name = "Email Address")]
         public string EmailAddress { get; set; }
 
-        [NotMapped]
-        public int IsAdmin { get; set; }
+        public bool EmailConfirmed { get; set; }
+        public bool PhoneConfirmed { get; set; }
+        public string Code { get; set; }
+        public DateTime? CodeExpired { get; set; }
 
         [NotMapped]
         public string Password { get; set; }

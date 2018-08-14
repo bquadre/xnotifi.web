@@ -14,7 +14,7 @@ namespace Softmax.XNotifi.Data.Contracts.Services
 
         IQueryable<ApplicationModel> List();
 
-        Response<ApplicationModel> Get(string id);
+        ApplicationModel Get(string id);
 
     }
 }

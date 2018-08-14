@@ -9,10 +9,8 @@ namespace Softmax.XNotifi.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public DbSet<Client> Clients { get; set; }
-        public DbSet<Gateway> Gateways { get; set; }
-        public DbSet<Application> Applications { get; set; }
-        public DbSet<Request> Requests { get; set; }
+        public DbSet<Message> Messages { get; set; }
+        public DbSet<Payment> Payments { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)

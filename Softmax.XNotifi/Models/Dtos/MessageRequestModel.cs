@@ -10,16 +10,19 @@ namespace Softmax.XNotifi.Models
     public class MessageRequestModel
     {
         [Required]
-        public string AppId { get; set; }
+        public string ClientId { get; set; }
 
         [Required]
-        public string AppKey { get; set; }
+        public string AccesssKey { get; set; }
+
+        [Required]
+        public string AppName { get; set; }
 
         [Required]
         public ServiceCode Service { get; set; }
 
         [Required]
-        public string From { get; set; }
+        public string From { get; set; } //email or phone numbers
 
         [Required]
         public string To { get; set; }

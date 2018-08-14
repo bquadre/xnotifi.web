@@ -8,7 +8,6 @@ namespace Softmax.XNotifi.Data.Contracts
 {
     public interface IMessageAdapter
     {
-        string SmsService(MessageRequestModel message, GatewayModel gateway);
-        string Emailservice(MessageRequestModel message, GatewayModel gateway);
+        string Send(MessageRequestModel message, GatewayModel gateway);
     }
 }
